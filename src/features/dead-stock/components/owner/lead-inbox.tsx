@@ -135,7 +135,7 @@ export const LeadInbox = () => {
   }
 
   return (
-    <Box className="lead-inbox" w="full" maxW="2xl">
+    <Box className="lead-inbox" w="full">
       <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={2}>
         <HStack gap={2}>
           <Heading size="md">Lead inbox</Heading>
