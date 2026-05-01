@@ -21,7 +21,10 @@ export const useSearchAutocomplete = (q: string) =>
     staleTime: 60_000,
   });
 
-export const useSearchItems = (params: DsSearchParams) => {
+export const useSearchItems = (
+  params: DsSearchParams,
+  options?: { enabled?: boolean }
+) => {
   return useInfiniteQuery({
     queryKey: QueryKeys.deadStock.search(params),
     queryFn: async ({ pageParam }) => {
@@ -38,5 +41,6 @@ export const useSearchItems = (params: DsSearchParams) => {
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: options?.enabled ?? true,
   });
 };

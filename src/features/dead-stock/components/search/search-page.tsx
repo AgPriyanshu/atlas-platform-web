@@ -1,8 +1,9 @@
 import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import type { DsSearchParams } from "api/dead-stock";
 import { useCategories, useSearchItems } from "api/dead-stock";
+import { toaster } from "design-system/toaster/toaster-instance";
 import { useBuyerLocation } from "../../hooks/use-buyer-location";
 import { ViewToggle, type SearchView } from "./_view-toggle";
 import { FilterChips } from "./filter-chips";
@@ -44,19 +45,37 @@ export const SearchPage = () => {
 
   useEffect(() => {
     if (
-      !buyerLocation.isLoading &&
-      buyerLocation.lat !== null &&
-      buyerLocation.lng !== null &&
-      !searchParams.get("lat") &&
-      !searchParams.get("lng")
-    ) {
+      buyerLocation.isLoading ||
+      buyerLocation.lat === null ||
+      buyerLocation.lng === null
+    )
+      return;
+
+    const newLat = String(buyerLocation.lat);
+    const newLng = String(buyerLocation.lng);
+
+    if (buyerLocation.source === "gps" && customLocationLabel === null) {
+      // GPS is the most accurate source — always sync it to the URL so that
+      // distance calculations match the blue dot, even if stale URL params exist.
+      if (
+        searchParams.get("lat") === newLat &&
+        searchParams.get("lng") === newLng
+      )
+        return;
       const next = new URLSearchParams(searchParams);
-      next.set("lat", String(buyerLocation.lat));
-      next.set("lng", String(buyerLocation.lng));
+      next.set("lat", newLat);
+      next.set("lng", newLng);
+      next.set("radiusKm", next.get("radiusKm") || "5");
+      setSearchParams(next, { replace: true });
+    } else if (!searchParams.get("lat") && !searchParams.get("lng")) {
+      // IP-based fallback: only set if the URL has no location at all.
+      const next = new URLSearchParams(searchParams);
+      next.set("lat", newLat);
+      next.set("lng", newLng);
       next.set("radiusKm", next.get("radiusKm") || "5");
       setSearchParams(next, { replace: true });
     }
-  }, [buyerLocation, searchParams, setSearchParams]);
+  }, [buyerLocation, customLocationLabel, searchParams, setSearchParams]);
 
   const updateParams = useCallback(
     (patch: Partial<DsSearchParams> & { view?: SearchView }) => {
@@ -109,8 +128,26 @@ export const SearchPage = () => {
     [updateParams]
   );
 
-  const searchQuery = useSearchItems(params);
+  // Wait for location to resolve. If a location was found, also wait until
+  // the useEffect above has written it into the URL (params.lat will be set).
+  // This prevents a wasted query firing before coordinates are available.
+  const locationReady =
+    !buyerLocation.isLoading &&
+    (buyerLocation.lat === null || params.lat !== undefined);
+  const searchQuery = useSearchItems(params, { enabled: locationReady });
   const items = flattenResults(searchQuery.data?.pages);
+
+  const prevLoadingRef = useRef(false);
+  useEffect(() => {
+    const wasLoading = prevLoadingRef.current;
+    prevLoadingRef.current = searchQuery.isLoading;
+    if (wasLoading && !searchQuery.isLoading && items.length === 0) {
+      toaster.info({
+        title: "No results found",
+        description: "Try a different keyword, category, or location.",
+      });
+    }
+  }, [searchQuery.isLoading, items.length]);
 
   const locationLabel =
     customLocationLabel ??
@@ -199,7 +236,6 @@ export const SearchPage = () => {
             radiusKm={params.radiusKm}
             isVisible={view === "map"}
             hasQuery={!!params.q}
-            onSearchArea={(area) => updateParams(area)}
           />
         </Box>
       </Box>

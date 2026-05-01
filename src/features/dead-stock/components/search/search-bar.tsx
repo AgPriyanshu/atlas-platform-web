@@ -7,7 +7,7 @@ import {
   InputGroup,
   Text,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { FiArrowRight, FiSearch, FiTag, FiX } from "react-icons/fi";
 import type { DsAutocompleteSuggestion } from "api/dead-stock";
 import { useSearchAutocomplete } from "api/dead-stock";
@@ -22,25 +22,21 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof window.setTimeout> | undefined>(
-    undefined
-  );
-  const skipDebounceRef = useRef(false);
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
 
-  useEffect(() => {
-    if (skipDebounceRef.current) {
-      skipDebounceRef.current = false;
-      return;
-    }
-    timeoutRef.current = window.setTimeout(() => onChange(draft), 300);
-    return () => window.clearTimeout(timeoutRef.current);
-  }, [draft, onChange]);
-
   const { data: suggestions = [] } = useSearchAutocomplete(draft);
+
+  const commit = useCallback(
+    (text: string) => {
+      onChange(text);
+      setOpen(false);
+      setActiveIndex(-1);
+    },
+    [onChange]
+  );
 
   useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
@@ -53,26 +49,25 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
   }, []);
 
   const selectSuggestion = (suggestion: DsAutocompleteSuggestion) => {
-    skipDebounceRef.current = true;
     setDraft(suggestion.name);
-    window.clearTimeout(timeoutRef.current);
-    onChange(suggestion.name);
-    setOpen(false);
-    setActiveIndex(-1);
+    commit(suggestion.name);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!open || suggestions.length === 0) return;
-
     if (event.key === "ArrowDown") {
       event.preventDefault();
+      setOpen(true);
       setActiveIndex((i) => Math.min(i + 1, suggestions.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, -1));
-    } else if (event.key === "Enter" && activeIndex >= 0) {
+    } else if (event.key === "Enter") {
       event.preventDefault();
-      selectSuggestion(suggestions[activeIndex]!);
+      if (open && activeIndex >= 0 && suggestions[activeIndex]) {
+        selectSuggestion(suggestions[activeIndex]!);
+      } else {
+        commit(draft);
+      }
     } else if (event.key === "Escape") {
       setOpen(false);
       setActiveIndex(-1);
@@ -82,19 +77,12 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
   const showDropdown = open && suggestions.length > 0;
 
   const handleClear = () => {
-    skipDebounceRef.current = true;
     setDraft("");
-    window.clearTimeout(timeoutRef.current);
-    onChange("");
-    setOpen(false);
-    setActiveIndex(-1);
+    commit("");
   };
 
   const handleSubmit = () => {
-    window.clearTimeout(timeoutRef.current);
-    onChange(draft);
-    setOpen(false);
-    setActiveIndex(-1);
+    commit(draft);
   };
 
   return (

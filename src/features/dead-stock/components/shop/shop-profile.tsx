@@ -9,7 +9,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { Link, useLocation, useParams } from "react-router";
 import type { DsSearchItem } from "api/dead-stock";
@@ -29,8 +29,16 @@ export const ShopProfile = () => {
   const { id = "" } = useParams();
   const location = useLocation();
   const { data: shop, isLoading: isShopLoading } = usePublicShop(id);
-  const { data: items = [], isLoading: areItemsLoading } =
+  const { data: rawItems = [], isLoading: areItemsLoading } =
     usePublicShopItems(id);
+  const highlightItemId = location.state?.highlightItemId as number | undefined;
+  const items = useMemo(() => {
+    if (!highlightItemId) return rawItems;
+    return [
+      ...rawItems.filter((item) => item.id === highlightItemId),
+      ...rawItems.filter((item) => item.id !== highlightItemId),
+    ];
+  }, [rawItems, highlightItemId]);
   const createReport = useCreateReport();
   const [contactItem, setContactItem] = useState<DsSearchItem | null>(null);
   const [recentTick, setRecentTick] = useState(0);

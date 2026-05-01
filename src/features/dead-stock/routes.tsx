@@ -5,6 +5,7 @@ import { LeadInbox } from "./components/owner/lead-inbox";
 import { OnboardingFlow } from "./components/owner/onboarding-flow";
 import { InventoryList } from "./components/owner/inventory-list";
 import { OwnerLayout } from "./components/owner/owner-layout";
+import { OwnerShop } from "./components/owner/owner-shop";
 import { PrivacyPage } from "./components/legal/privacy";
 import { TermsPage } from "./components/legal/terms";
 import { SearchPage } from "./components/search/search-page";
@@ -46,6 +47,7 @@ export const DeadStockOwnerRoutes = () => (
       >
         <Route path="owner/inventory" element={<InventoryList />} />
         <Route path="owner/leads" element={<LeadInbox />} />
+        <Route path="owner/shop" element={<OwnerShop />} />
       </Route>
     </Route>
   </Routes>

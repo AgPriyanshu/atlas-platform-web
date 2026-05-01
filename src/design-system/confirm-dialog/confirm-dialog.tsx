@@ -16,10 +16,15 @@ export const ConfirmDialog = ({
   onConfirm,
   title = "Confirmation",
   description,
+  confirmLabel = "Confirm",
   isLoading = false,
 }: ConfirmDialogProps) => {
   return (
-    <Dialog.Root open={isOpen} placement={"center"}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(event) => !event.open && onClose()}
+      placement={"center"}
+    >
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
@@ -29,16 +34,16 @@ export const ConfirmDialog = ({
             </Dialog.Header>
             <Dialog.Body>{description}</Dialog.Body>
             <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Cancel</Button>
-              </Dialog.ActionTrigger>
+              <Button variant="outline" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </Button>
               <Button
                 onClick={onConfirm}
                 loading={isLoading}
                 bgColor={"intent.danger"}
                 color={"white"}
               >
-                Confirm
+                {confirmLabel}
               </Button>
             </Dialog.Footer>
             <Dialog.CloseTrigger asChild>

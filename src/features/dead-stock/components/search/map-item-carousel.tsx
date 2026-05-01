@@ -115,7 +115,7 @@ export const MapItemCarousel = ({
           {/* Clickable image + info — navigates to shop */}
           <Link
             to={`/dead-stock/shops/${item.shop}`}
-            state={{ from: location }}
+            state={{ from: location, highlightItemId: item.id }}
             style={{
               display: "flex",
               flex: 1,

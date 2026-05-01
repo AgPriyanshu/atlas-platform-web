@@ -14,26 +14,34 @@ export const shopMarkerLayerIds = {
   points: POINTS_ID,
 };
 
-export const toShopFeatureCollection = (items: DsSearchItem[]) => ({
-  type: "FeatureCollection" as const,
-  features: items
-    .filter((item) => item.shopLat !== null && item.shopLng !== null)
-    .map((item) => ({
-      type: "Feature" as const,
-      properties: {
-        itemId: item.id,
-        shopId: item.shop,
-        title: item.shopName,
-      },
-      geometry: {
-        type: "Point" as const,
-        coordinates: [item.shopLng as number, item.shopLat as number],
-      },
-    })),
-});
+export const toShopFeatureCollection = (items: DsSearchItem[]) => {
+  const seen = new Set<number>();
+  return {
+    type: "FeatureCollection" as const,
+    features: items
+      .filter((item) => item.shopLat !== null && item.shopLng !== null)
+      .filter((item) => {
+        if (seen.has(item.shop)) return false;
+        seen.add(item.shop);
+        return true;
+      })
+      .map((item) => ({
+        type: "Feature" as const,
+        properties: {
+          itemId: item.id,
+          shopId: item.shop,
+          title: item.shopName,
+        },
+        geometry: {
+          type: "Point" as const,
+          coordinates: [item.shopLng as number, item.shopLat as number],
+        },
+      })),
+  };
+};
 
 const PIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
-  <path d="M16 0C7.16 0 0 7.16 0 16C0 28 16 44 16 44C16 44 32 28 32 16C32 7.16 24.84 0 16 0Z" fill="#f59e0b" stroke="white" stroke-width="2.5"/>
+  <path d="M16 0C7.16 0 0 7.16 0 16C0 28 16 44 16 44C16 44 32 28 32 16C32 7.16 24.84 0 16 0Z" fill="#ef4444" stroke="white" stroke-width="2.5"/>
   <circle cx="16" cy="16" r="6" fill="white"/>
 </svg>`;
 

@@ -79,7 +79,6 @@ export const InventoryList = () => {
           border="1px dashed"
           borderColor="border.default"
         >
-          <Box boxSize="100px" bg="surface.subtle" borderRadius="full" mb={2} />{" "}
           {/* Placeholder for illustration */}
           <Heading size="md">Your inventory is empty</Heading>
           <Text color="text.secondary" textAlign="center" maxW="sm">

@@ -5,8 +5,10 @@ import {
   Image,
   MenuContent,
   MenuItem,
+  MenuPositioner,
   MenuRoot,
   MenuTrigger,
+  Portal,
   Table,
   Text,
   VStack,
@@ -51,27 +53,31 @@ const ItemActions = ({
           <FiMoreVertical />
         </IconButton>
       </MenuTrigger>
-      <MenuContent>
-        <MenuItem value="edit" onClick={() => onEdit(item)}>
-          <HStack gap={2}>
-            <FiEdit2 /> <Text>Edit</Text>
-          </HStack>
-        </MenuItem>
-        <MenuItem value="refresh" onClick={onRefresh}>
-          <HStack gap={2}>
-            <FiRefreshCw /> <Text>Refresh</Text>
-          </HStack>
-        </MenuItem>
-        <MenuItem
-          value="delete"
-          onClick={() => setIsDeleteOpen(true)}
-          color="intent.danger"
-        >
-          <HStack gap={2}>
-            <FiTrash2 /> <Text>Delete</Text>
-          </HStack>
-        </MenuItem>
-      </MenuContent>
+      <Portal>
+        <MenuPositioner>
+          <MenuContent>
+            <MenuItem value="edit" onClick={() => onEdit(item)}>
+              <HStack gap={2}>
+                <FiEdit2 /> <Text>Edit</Text>
+              </HStack>
+            </MenuItem>
+            <MenuItem value="refresh" onClick={onRefresh}>
+              <HStack gap={2}>
+                <FiRefreshCw /> <Text>Refresh</Text>
+              </HStack>
+            </MenuItem>
+            <MenuItem
+              value="delete"
+              onClick={() => setIsDeleteOpen(true)}
+              color="intent.danger"
+            >
+              <HStack gap={2}>
+                <FiTrash2 /> <Text>Delete</Text>
+              </HStack>
+            </MenuItem>
+          </MenuContent>
+        </MenuPositioner>
+      </Portal>
     </MenuRoot>
 
     <ConfirmDialog

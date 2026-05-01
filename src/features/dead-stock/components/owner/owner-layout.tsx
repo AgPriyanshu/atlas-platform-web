@@ -1,5 +1,5 @@
 import { Box, Button, Flex, HStack, Heading, Text } from "@chakra-ui/react";
-import { FiPackage, FiInbox, FiLogOut } from "react-icons/fi";
+import { FiPackage, FiInbox, FiLogOut, FiShoppingBag } from "react-icons/fi";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { clearToken } from "shared/local-storage";
 import { queryClient } from "api/query-client";
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
     icon: <FiPackage />,
   },
   { label: "Leads", to: "/dead-stock/owner/leads", icon: <FiInbox /> },
+  { label: "My Shop", to: "/dead-stock/owner/shop", icon: <FiShoppingBag /> },
 ];
 
 export const OwnerLayout = () => {

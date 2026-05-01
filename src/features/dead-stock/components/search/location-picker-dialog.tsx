@@ -28,7 +28,7 @@ interface NominatimResult {
   lon: string;
 }
 
-const PIN_COLOR = "#f97316";
+const PIN_COLOR = "#ef4444";
 
 const CrosshairPin = () => (
   <Box
@@ -149,7 +149,7 @@ export const LocationPickerDialog = ({
   const selectAddress = (result: NominatimResult) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
-    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15 });
+    mapRef.current?.jumpTo({ center: [lng, lat], zoom: 15 });
     setAddressQuery(result.display_name);
     setSearchResults([]);
     setSearchOpen(false);

@@ -39,7 +39,7 @@ export const StaticShopMap = ({ shop }: StaticShopMapProps) => {
       )
       .setLngLat([shop.lng, shop.lat]);
 
-    const marker = new maplibregl.Marker({ color: "#f59e0b" })
+    const marker = new maplibregl.Marker({ color: "#ef4444" })
       .setLngLat([shop.lng, shop.lat])
       .addTo(map);
 

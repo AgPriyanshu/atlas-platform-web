@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Field,
   Input,
@@ -93,11 +94,26 @@ export const ItemForm = ({ initialData, onClose }: ItemFormProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <VStack gap={4} align="stretch">
-        {activeItemId && (
+        {activeItemId ? (
           <ImageUploader
             itemId={activeItemId}
             onImagesChange={handleImagesChange}
           />
+        ) : (
+          <Box
+            borderWidth="2px"
+            borderStyle="dashed"
+            borderColor="border.default"
+            borderRadius="md"
+            px={4}
+            py={6}
+            textAlign="center"
+            opacity={0.5}
+          >
+            <Text fontSize="sm" color="fg.muted">
+              Images can be added after saving item details
+            </Text>
+          </Box>
         )}
 
         <Field.Root invalid={!!errors.name}>

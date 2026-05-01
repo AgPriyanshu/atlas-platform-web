@@ -1,7 +1,7 @@
-import { Box, Button, IconButton, Text, VStack } from "@chakra-ui/react";
+import { Box, IconButton, Text, VStack } from "@chakra-ui/react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiCrosshair, FiMinus, FiPlus } from "react-icons/fi";
 import type { DsSearchItem } from "api/dead-stock";
 import {
@@ -19,27 +19,7 @@ interface ResultsMapProps {
   radiusKm?: number;
   isVisible: boolean;
   hasQuery: boolean;
-  onSearchArea: (params: {
-    lat: number;
-    lng: number;
-    radiusKm: number;
-  }) => void;
 }
-
-const distanceKm = (
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number }
-) => {
-  const earthKm = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return 2 * earthKm * Math.asin(Math.sqrt(h));
-};
 
 const programmaticFlyTo = (
   map: maplibregl.Map,
@@ -71,21 +51,29 @@ export const ResultsMap = ({
   myLng,
   isVisible,
   hasQuery,
-  onSearchArea,
 }: ResultsMapProps) => {
+  const sortedItems = useMemo(
+    () =>
+      [...items].sort((a, b) => {
+        if (a.distanceM === null) return 1;
+        if (b.distanceM === null) return -1;
+        return a.distanceM - b.distanceM;
+      }),
+    [items]
+  );
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const locationMarkerRef = useRef<maplibregl.Marker | null>(null);
-  const itemsRef = useRef(items);
+  const itemsRef = useRef(sortedItems);
   const initialLatRef = useRef(lat);
   const initialLngRef = useRef(lng);
   const isProgrammaticMoveRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [showSearchArea, setShowSearchArea] = useState(false);
 
   useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
+    itemsRef.current = sortedItems;
+  }, [sortedItems]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -97,7 +85,7 @@ export const ResultsMap = ({
         initialLngRef.current ?? 77.209,
         initialLatRef.current ?? 28.6139,
       ],
-      zoom: initialLatRef.current && initialLngRef.current ? 11 : 4,
+      zoom: initialLatRef.current && initialLngRef.current ? 13 : 4,
       attributionControl: false,
     });
     mapRef.current = map;
@@ -108,9 +96,7 @@ export const ResultsMap = ({
       map.on("moveend", () => {
         if (isProgrammaticMoveRef.current) {
           isProgrammaticMoveRef.current = false;
-          return;
         }
-        setShowSearchArea(true);
       });
 
       map.on("click", shopMarkerLayerIds.points, (event) => {
@@ -161,12 +147,52 @@ export const ResultsMap = ({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
+    const fitToItems = () => {
+      void mountShopMarkers(map, sortedItems);
+
+      const located = sortedItems.filter(
+        (item) => item.shopLat !== null && item.shopLng !== null
+      );
+      if (located.length === 0) return;
+
+      // Deduplicate to unique shop locations before computing bounds.
+      const seen = new Set<number>();
+      const points = located.filter((item) => {
+        if (seen.has(item.shop)) return false;
+        seen.add(item.shop);
+        return true;
+      });
+
+      const lngs = points.map((item) => item.shopLng as number);
+      const lats = points.map((item) => item.shopLat as number);
+
+      // Extend bounds to include the user's location if available.
+      if (myLng != null) lngs.push(myLng);
+      if (myLat != null) lats.push(myLat);
+
+      const bounds = new maplibregl.LngLatBounds(
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)]
+      );
+
+      isProgrammaticMoveRef.current = true;
+
+      // Single shop with no user location — fly to it to avoid over-zooming.
+      if (points.length === 1 && myLat == null) {
+        map.flyTo({ center: bounds.getCenter(), zoom: 14, duration: 600 });
+        return;
+      }
+
+      map.fitBounds(bounds, { padding: 80, maxZoom: 14, duration: 600 });
+    };
+
     if (map.isStyleLoaded()) {
-      void mountShopMarkers(map, items);
+      fitToItems();
     } else {
-      map.once("load", () => void mountShopMarkers(map, items));
+      map.once("load", fitToItems);
     }
-  }, [items]);
+  }, [sortedItems, myLat, myLng]);
 
   // Keep the current-location marker in sync with the buyer's actual position.
   useEffect(() => {
@@ -239,7 +265,7 @@ export const ResultsMap = ({
     const fly = () =>
       programmaticFlyTo(map, isProgrammaticMoveRef, {
         center: [lng, lat],
-        zoom: 12,
+        zoom: 13,
       });
     if (map.isStyleLoaded()) {
       fly();
@@ -257,25 +283,10 @@ export const ResultsMap = ({
   const handleNavigate = (index: number) => {
     setActiveIndex(index);
     const map = mapRef.current;
-    const item = items[index];
+    const item = sortedItems[index];
     if (map && item) {
       flyToItem(map, item, isProgrammaticMoveRef);
     }
-  };
-
-  const handleSearchArea = () => {
-    const map = mapRef.current;
-    if (!map) return;
-    const center = map.getCenter();
-    const bounds = map.getBounds();
-    const radiusKm = Math.ceil(
-      Math.max(
-        distanceKm(center, bounds.getNorthEast()),
-        distanceKm(center, bounds.getSouthWest())
-      )
-    );
-    setShowSearchArea(false);
-    onSearchArea({ lat: center.lat, lng: center.lng, radiusKm });
   };
 
   const handleZoomIn = useCallback(() => mapRef.current?.zoomIn(), []);
@@ -291,7 +302,8 @@ export const ResultsMap = ({
     });
   }, [myLat, myLng]);
 
-  const resultCount = items.length;
+  const uniqueShopCount = new Set(sortedItems.map((i) => i.shop)).size;
+  const resultCount = sortedItems.length;
 
   return (
     <Box className="results-map" position="relative" h="full">
@@ -313,24 +325,10 @@ export const ResultsMap = ({
           pointerEvents="none"
         >
           <Text fontSize="xs" fontWeight="medium">
-            {resultCount} {resultCount === 1 ? "shop" : "shops"} found
+            {resultCount} {resultCount === 1 ? "item" : "items"} across{" "}
+            {uniqueShopCount} {uniqueShopCount === 1 ? "shop" : "shops"}
           </Text>
         </Box>
-      )}
-
-      {/* Search this area — top center */}
-      {showSearchArea && (
-        <Button
-          position="absolute"
-          top={3}
-          left="50%"
-          transform="translateX(-50%)"
-          size="sm"
-          shadow="md"
-          onClick={handleSearchArea}
-        >
-          Search this area
-        </Button>
       )}
 
       {/* Custom map controls — bottom right */}
@@ -377,7 +375,7 @@ export const ResultsMap = ({
 
       {activeIndex !== null && resultCount > 0 && (
         <MapItemCarousel
-          items={items}
+          items={sortedItems}
           activeIndex={activeIndex}
           onNavigate={handleNavigate}
           onClose={() => setActiveIndex(null)}
