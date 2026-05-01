@@ -15,7 +15,7 @@ export const shopMarkerLayerIds = {
 };
 
 export const toShopFeatureCollection = (items: DsSearchItem[]) => {
-  const seen = new Set<number>();
+  const seen = new Set<string>();
   return {
     type: "FeatureCollection" as const,
     features: items

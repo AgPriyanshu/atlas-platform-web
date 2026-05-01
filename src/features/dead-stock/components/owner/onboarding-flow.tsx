@@ -11,7 +11,7 @@ import {
 import { useMyShop } from "api/dead-stock";
 import { queryClient } from "api/query-client";
 import { RoutePath } from "app/router/constants";
-import { clearToken } from "shared/local-storage";
+import { clearDeadStockOwnerToken, clearToken } from "shared/local-storage";
 import { useNavigate } from "react-router";
 import { useOnboardingState } from "../../hooks/use-onboarding-state";
 import { LocationStep } from "./steps/location-step";
@@ -63,6 +63,7 @@ export const OnboardingFlow = () => {
   const stepIndex = { phone: 0, "shop-details": 1, location: 2 }[state.step];
 
   const handleLogout = () => {
+    clearDeadStockOwnerToken();
     clearToken();
     queryClient.clear();
     navigate("/dead-stock/login", { replace: true });

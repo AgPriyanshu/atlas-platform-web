@@ -14,8 +14,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { FiMoreVertical, FiEdit2, FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import { useState } from "react";
-import { ConfirmDialog } from "design-system/confirm-dialog";
 import { toaster } from "design-system/toaster/toaster-instance";
 import type { DsItem } from "api/dead-stock";
 import { useRefreshItem, useDeleteItem } from "api/dead-stock";
@@ -32,8 +30,6 @@ interface ItemActionsProps {
   onEdit: (item: DsItem) => void;
   onRefresh: () => void;
   onDelete: () => void;
-  isDeleteOpen: boolean;
-  setIsDeleteOpen: (isOpen: boolean) => void;
   isDeleting: boolean;
 }
 
@@ -42,57 +38,44 @@ const ItemActions = ({
   onEdit,
   onRefresh,
   onDelete,
-  isDeleteOpen,
-  setIsDeleteOpen,
   isDeleting,
 }: ItemActionsProps) => (
-  <>
-    <MenuRoot>
-      <MenuTrigger asChild>
-        <IconButton variant="ghost" size="sm" aria-label="Item actions">
-          <FiMoreVertical />
-        </IconButton>
-      </MenuTrigger>
-      <Portal>
-        <MenuPositioner>
-          <MenuContent>
-            <MenuItem value="edit" onClick={() => onEdit(item)}>
-              <HStack gap={2}>
-                <FiEdit2 /> <Text>Edit</Text>
-              </HStack>
-            </MenuItem>
-            <MenuItem value="refresh" onClick={onRefresh}>
-              <HStack gap={2}>
-                <FiRefreshCw /> <Text>Refresh</Text>
-              </HStack>
-            </MenuItem>
-            <MenuItem
-              value="delete"
-              onClick={() => setIsDeleteOpen(true)}
-              color="intent.danger"
-            >
-              <HStack gap={2}>
-                <FiTrash2 /> <Text>Delete</Text>
-              </HStack>
-            </MenuItem>
-          </MenuContent>
-        </MenuPositioner>
-      </Portal>
-    </MenuRoot>
-
-    <ConfirmDialog
-      isOpen={isDeleteOpen}
-      onClose={() => setIsDeleteOpen(false)}
-      onConfirm={onDelete}
-      title="Delete Item"
-      description={`Are you sure you want to delete "${item.name}"? This cannot be undone.`}
-      isLoading={isDeleting}
-    />
-  </>
+  <MenuRoot>
+    <MenuTrigger asChild>
+      <IconButton variant="ghost" size="sm" aria-label="Item actions">
+        <FiMoreVertical />
+      </IconButton>
+    </MenuTrigger>
+    <Portal>
+      <MenuPositioner>
+        <MenuContent>
+          <MenuItem value="edit" onClick={() => onEdit(item)}>
+            <HStack gap={2}>
+              <FiEdit2 /> <Text>Edit</Text>
+            </HStack>
+          </MenuItem>
+          <MenuItem value="refresh" onClick={onRefresh}>
+            <HStack gap={2}>
+              <FiRefreshCw /> <Text>Refresh</Text>
+            </HStack>
+          </MenuItem>
+          <MenuItem
+            value="delete"
+            onClick={onDelete}
+            color="intent.danger"
+            disabled={isDeleting}
+          >
+            <HStack gap={2}>
+              <FiTrash2 /> <Text>{isDeleting ? "Deleting" : "Delete"}</Text>
+            </HStack>
+          </MenuItem>
+        </MenuContent>
+      </MenuPositioner>
+    </Portal>
+  </MenuRoot>
 );
 
 export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const refreshItem = useRefreshItem();
   const deleteItem = useDeleteItem();
 
@@ -109,10 +92,16 @@ export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
   };
 
   const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Delete "${item.name}"? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await deleteItem.mutateAsync(item.id);
       toaster.success({ title: "Item deleted" });
-      setIsDeleteOpen(false);
     } catch {
       toaster.error({ title: "Failed to delete item" });
     }
@@ -168,8 +157,6 @@ export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
             onEdit={onEdit}
             onRefresh={handleRefresh}
             onDelete={handleDelete}
-            isDeleteOpen={isDeleteOpen}
-            setIsDeleteOpen={setIsDeleteOpen}
             isDeleting={deleteItem.isPending}
           />
         </HStack>
@@ -210,8 +197,6 @@ export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
           onEdit={onEdit}
           onRefresh={handleRefresh}
           onDelete={handleDelete}
-          isDeleteOpen={isDeleteOpen}
-          setIsDeleteOpen={setIsDeleteOpen}
           isDeleting={deleteItem.isPending}
         />
       </Table.Cell>

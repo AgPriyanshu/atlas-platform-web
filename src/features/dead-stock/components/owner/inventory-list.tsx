@@ -12,19 +12,47 @@ import {
   VStack,
   Portal,
   CloseButton,
+  Input,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { FiPlus } from "react-icons/fi";
-import { useMyItems } from "api/dead-stock";
-import type { DsItem } from "api/dead-stock";
+import type { AxiosError } from "axios";
+import { useEffect, useRef, useState } from "react";
+import { FiPlus, FiUpload } from "react-icons/fi";
+import { toaster } from "design-system/toaster/toaster-instance";
+import { useBulkUploadItems, useMyItems } from "api/dead-stock";
+import type { DsBulkUploadItemsResponse, DsItem } from "api/dead-stock";
 import { ItemForm } from "./item-form";
 import { ItemRow } from "./item-row";
+
+const formatBulkUploadError = (error: unknown) => {
+  const axiosError = error as AxiosError<{
+    data?: DsBulkUploadItemsResponse & Record<string, unknown>;
+  }>;
+  const response = axiosError.response?.data?.data;
+  const fileError = response?.file;
+  if (Array.isArray(fileError)) {
+    return fileError.join(", ");
+  }
+  if (typeof fileError === "string") {
+    return fileError;
+  }
+
+  const firstRowError = response?.errors?.[0];
+  if (!firstRowError) {
+    return "Check the CSV columns and try again.";
+  }
+
+  const [field, messages] = Object.entries(firstRowError.errors)[0] ?? [];
+  const message = Array.isArray(messages) ? messages.join(", ") : messages;
+  return `Row ${firstRowError.row}${field ? `, ${field}` : ""}: ${message}`;
+};
 
 export const InventoryList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DsItem | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: items, isLoading } = useMyItems();
+  const bulkUploadItems = useBulkUploadItems();
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
@@ -57,6 +85,28 @@ export const InventoryList = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(undefined);
+  };
+
+  const handleCsvUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const result = await bulkUploadItems.mutateAsync(file);
+      toaster.success({
+        title: "CSV uploaded",
+        description: `${result.created} item${result.created === 1 ? "" : "s"} added.`,
+      });
+    } catch (error) {
+      toaster.error({
+        title: "CSV upload failed",
+        description: formatBulkUploadError(error),
+      });
+    } finally {
+      event.target.value = "";
+    }
   };
 
   const renderContent = () => {
@@ -144,14 +194,30 @@ export const InventoryList = () => {
             Press 'n' to quickly add a new item.
           </Text>
         </VStack>
-        <Button
-          onClick={() => {
-            setEditingItem(undefined);
-            setIsModalOpen(true);
-          }}
-        >
-          <FiPlus /> Add item
-        </Button>
+        <Flex gap={2} wrap="wrap">
+          <Input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            display="none"
+            onChange={handleCsvUpload}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            loading={bulkUploadItems.isPending}
+          >
+            <FiUpload /> Upload CSV
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingItem(undefined);
+              setIsModalOpen(true);
+            }}
+          >
+            <FiPlus /> Add item
+          </Button>
+        </Flex>
       </Flex>
 
       {renderContent()}

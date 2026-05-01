@@ -18,6 +18,7 @@ import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import { useLogin } from "src/api/auth";
 import { toaster } from "design-system/toaster";
+import { setDeadStockOwnerToken } from "shared/local-storage";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -46,7 +47,8 @@ export const DeadStockLoginPage = () => {
             type: "error",
           });
         },
-        onSuccess: () => {
+        onSuccess: (response) => {
+          setDeadStockOwnerToken(response.data.data.token);
           navigate("/dead-stock/owner/inventory", { replace: true });
         },
       }

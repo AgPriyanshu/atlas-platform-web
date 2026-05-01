@@ -138,6 +138,17 @@ export interface DsCreateItemPayload {
   category?: string | null;
 }
 
+export interface DsBulkUploadRowError {
+  row: number;
+  errors: Record<string, string[] | string>;
+}
+
+export interface DsBulkUploadItemsResponse {
+  created: number;
+  items: DsItem[];
+  errors?: DsBulkUploadRowError[];
+}
+
 export interface DsCreateLeadPayload {
   shopId: string;
   itemId?: string | null;

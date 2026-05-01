@@ -157,7 +157,7 @@ export const ResultsMap = ({
       if (located.length === 0) return;
 
       // Deduplicate to unique shop locations before computing bounds.
-      const seen = new Set<number>();
+      const seen = new Set<string>();
       const points = located.filter((item) => {
         if (seen.has(item.shop)) return false;
         seen.add(item.shop);

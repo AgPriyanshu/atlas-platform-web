@@ -31,7 +31,7 @@ export const ShopProfile = () => {
   const { data: shop, isLoading: isShopLoading } = usePublicShop(id);
   const { data: rawItems = [], isLoading: areItemsLoading } =
     usePublicShopItems(id);
-  const highlightItemId = location.state?.highlightItemId as number | undefined;
+  const highlightItemId = location.state?.highlightItemId as string | undefined;
   const items = useMemo(() => {
     if (!highlightItemId) return rawItems;
     return [

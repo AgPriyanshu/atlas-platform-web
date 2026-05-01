@@ -1,5 +1,9 @@
 import { Navigate, Route, Routes } from "react-router";
-import { getAccessToken } from "shared/local-storage/token";
+import {
+  getAccessToken,
+  getDeadStockOwnerToken,
+  setAccessToken,
+} from "shared/local-storage/token";
 import { DeadStockLoginPage } from "./components/auth/dead-stock-login-page";
 import { LeadInbox } from "./components/owner/lead-inbox";
 import { OnboardingFlow } from "./components/owner/onboarding-flow";
@@ -13,8 +17,12 @@ import { ShopProfile } from "./components/shop/shop-profile";
 import { DeadStockPage } from "./dead-stock";
 
 const OwnerRoute = ({ children }: { children: React.ReactNode }) => {
-  if (!getAccessToken()) {
+  const ownerToken = getDeadStockOwnerToken();
+  if (!ownerToken) {
     return <Navigate to="/dead-stock/login" replace />;
+  }
+  if (getAccessToken() !== ownerToken) {
+    setAccessToken(ownerToken);
   }
   return <>{children}</>;
 };

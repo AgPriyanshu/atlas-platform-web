@@ -3,7 +3,11 @@ import api from "api/api";
 import { queryClient } from "api/query-client";
 import { QueryKeys } from "api/query-keys";
 import type { ApiResponse } from "api/types";
-import type { DsCreateItemPayload, DsItem } from "./types";
+import type {
+  DsBulkUploadItemsResponse,
+  DsCreateItemPayload,
+  DsItem,
+} from "./types";
 
 export const useMyItems = (status?: string) => {
   return useQuery({
@@ -83,6 +87,24 @@ export const useCreateItem = () => {
           context.previousItems
         );
       }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.deadStock.myItems });
+    },
+  });
+};
+
+export const useBulkUploadItems = () => {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await api.post<ApiResponse<DsBulkUploadItemsResponse>>(
+        "/dead-stock/items/bulk-upload/",
+        formData
+      );
+      return response.data.data;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.deadStock.myItems });

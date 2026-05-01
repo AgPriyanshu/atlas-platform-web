@@ -1,7 +1,7 @@
 import { Box, Button, Flex, HStack, Heading, Text } from "@chakra-ui/react";
 import { FiPackage, FiInbox, FiLogOut, FiShoppingBag } from "react-icons/fi";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { clearToken } from "shared/local-storage";
+import { clearDeadStockOwnerToken, clearToken } from "shared/local-storage";
 import { queryClient } from "api/query-client";
 
 const NAV_ITEMS = [
@@ -19,6 +19,7 @@ export const OwnerLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    clearDeadStockOwnerToken();
     clearToken();
     queryClient.clear();
     navigate("/dead-stock/login", { replace: true });
