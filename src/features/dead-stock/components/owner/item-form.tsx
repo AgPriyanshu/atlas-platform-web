@@ -164,7 +164,7 @@ export const ItemForm = ({ initialData, onClose }: ItemFormProps) => {
               >
                 <option value="">Select a category</option>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
+                  <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}

@@ -251,8 +251,8 @@ export const SearchPage = () => {
             items={items}
             lat={params.lat}
             lng={params.lng}
-            myLat={buyerLocation.lat}
-            myLng={buyerLocation.lng}
+            myLat={params.lat ?? null}
+            myLng={params.lng ?? null}
             radiusKm={params.radiusKm}
             isVisible={view === "map"}
             hasQuery={!!params.q}
