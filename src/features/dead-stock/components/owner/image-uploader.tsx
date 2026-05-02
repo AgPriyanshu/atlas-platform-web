@@ -112,9 +112,12 @@ export const ImageUploader = ({
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    hasPendingVariantsRef.current = images.some(
-      (image) => !image.variantsReady
-    );
+    const hasPending = images.some((image) => !image.variantsReady);
+    hasPendingVariantsRef.current = hasPending;
+
+    if (hasPending) {
+      setPollUntil((prev) => Math.max(prev, Date.now() + POLL_MS));
+    }
   }, [images]);
 
   useEffect(() => {

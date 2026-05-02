@@ -27,12 +27,27 @@ const OwnerRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+  const ownerToken = getDeadStockOwnerToken();
+  if (ownerToken) {
+    return <Navigate to="/dead-stock/owner/inventory" replace />;
+  }
+  return <>{children}</>;
+};
+
 export const DeadStockOwnerRoutes = () => (
   <Routes>
     <Route element={<DeadStockPage />}>
       {/* Public routes — no auth required */}
       <Route index element={<SearchPage />} />
-      <Route path="login" element={<DeadStockLoginPage />} />
+      <Route
+        path="login"
+        element={
+          <GuestRoute>
+            <DeadStockLoginPage />
+          </GuestRoute>
+        }
+      />
       <Route path="shops/:id" element={<ShopProfile />} />
       <Route path="terms" element={<TermsPage />} />
       <Route path="privacy" element={<PrivacyPage />} />

@@ -13,7 +13,13 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { FiMoreVertical, FiEdit2, FiRefreshCw, FiTrash2 } from "react-icons/fi";
+import {
+  FiMoreVertical,
+  FiEdit2,
+  FiRefreshCw,
+  FiTrash2,
+  FiCpu,
+} from "react-icons/fi";
 import { toaster } from "design-system/toaster/toaster-instance";
 import type { DsItem } from "api/dead-stock";
 import { useRefreshItem, useDeleteItem } from "api/dead-stock";
@@ -100,9 +106,12 @@ export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
     }
 
     try {
+      console.log("Delete Item called");
+
       await deleteItem.mutateAsync(item.id);
       toaster.success({ title: "Item deleted" });
-    } catch {
+    } catch (error) {
+      console.log({ error });
       toaster.error({ title: "Failed to delete item" });
     }
   };
@@ -138,7 +147,16 @@ export const ItemRow = ({ item, onEdit, isMobile }: ItemRowProps) => {
                   objectFit="cover"
                 />
               ) : (
-                <Box w="full" h="full" bg="surface.subtle" />
+                <Box
+                  w="full"
+                  h="full"
+                  bg="surface.subtle"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <FiCpu size={18} color="var(--chakra-colors-fg-muted)" />
+                </Box>
               )}
             </Box>
             <VStack align="start" gap={1}>

@@ -53,7 +53,9 @@ const loadPinImage = (map: MapLibreMap): Promise<void> =>
     }
     const img = new Image(32, 44);
     img.onload = () => {
-      map.addImage(PIN_IMAGE_ID, img, { pixelRatio: 2 });
+      if (!map.hasImage(PIN_IMAGE_ID)) {
+        map.addImage(PIN_IMAGE_ID, img, { pixelRatio: 2 });
+      }
       resolve();
     };
     img.onerror = reject;
@@ -73,6 +75,14 @@ export const mountShopMarkers = async (
   }
 
   await loadPinImage(map);
+
+  // Re-check after the async image load in case a concurrent call already added the source.
+  const raceSource = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
+
+  if (raceSource) {
+    raceSource.setData(data);
+    return;
+  }
 
   map.addSource(SOURCE_ID, {
     type: "geojson",

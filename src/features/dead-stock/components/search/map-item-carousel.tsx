@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { Link, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -40,6 +40,7 @@ export const MapItemCarousel = ({
   onClose,
 }: MapItemCarouselProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const item = items[activeIndex];
   if (!item) return null;
 
@@ -113,16 +114,16 @@ export const MapItemCarousel = ({
           </Box>
 
           {/* Clickable image + info — navigates to shop */}
-          <Link
-            to={`/dead-stock/shops/${item.shop}`}
-            state={{ from: location, highlightItemId: item.id }}
-            style={{
-              display: "flex",
-              flex: 1,
-              minWidth: 0,
-              textDecoration: "none",
-              color: "inherit",
-            }}
+          <Box
+            display="flex"
+            flex={1}
+            minW={0}
+            cursor="pointer"
+            onClick={() =>
+              navigate(`/dead-stock/shops/${item.shop}`, {
+                state: { from: location, highlightItemId: item.id },
+              })
+            }
           >
             <Box w="100px" flexShrink={0} bg="bg.muted">
               {primaryImage ? (
@@ -195,7 +196,7 @@ export const MapItemCarousel = ({
                 </a>
               </HStack>
             </VStack>
-          </Link>
+          </Box>
 
           {/* Next button */}
           <Box

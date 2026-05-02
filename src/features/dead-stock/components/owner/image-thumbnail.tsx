@@ -92,14 +92,14 @@ export const ImageThumbnail = ({
           position="absolute"
           top={2}
           right={2}
+          zIndex={1}
           size="2xs"
-          variant="solid"
+          variant="ghost"
+          colorPalette="red"
           aria-label="Delete image"
           loading={isDeleting}
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete(image.id);
-          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => onDelete(image.id)}
         >
           <FiTrash2 />
         </IconButton>

@@ -9,9 +9,33 @@ import type {
   DsItem,
 } from "./types";
 
+type ItemsCache = { data: ApiResponse<DsItem[]> };
+
+const myItemsKey = (status?: string) => [
+  ...QueryKeys.deadStock.myItems,
+  status,
+];
+
+const getItemsCache = (status?: string) =>
+  queryClient.getQueryData<ItemsCache>(myItemsKey(status));
+
+const setItemsCache = (
+  status: string | undefined,
+  updater: (items: DsItem[]) => DsItem[]
+) => {
+  const cached = getItemsCache(status);
+
+  if (!cached) return;
+
+  queryClient.setQueryData<ItemsCache>(myItemsKey(status), {
+    ...cached,
+    data: { ...cached.data, data: updater(cached.data.data) },
+  });
+};
+
 export const useMyItems = (status?: string) => {
   return useQuery({
-    queryKey: [...QueryKeys.deadStock.myItems, status],
+    queryKey: myItemsKey(status),
     queryFn: async () =>
       api.get<ApiResponse<DsItem[]>>("/dead-stock/items/", {
         params: status ? { status } : undefined,
@@ -50,42 +74,34 @@ export const useCreateItem = () => {
       await queryClient.cancelQueries({
         queryKey: QueryKeys.deadStock.myItems,
       });
-      const previousItems = queryClient.getQueryData<DsItem[]>([
-        ...QueryKeys.deadStock.myItems,
-        undefined,
-      ]);
-      if (previousItems) {
-        queryClient.setQueryData<DsItem[]>(
-          [...QueryKeys.deadStock.myItems, undefined],
-          [
-            {
-              id: `temp-${Date.now()}`,
-              ...payload,
-              status: "active",
-              images: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              staleAt: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-              shop: "temp",
-              shopName: "temp",
-              sku: payload.sku || "",
-              description: payload.description || "",
-              price: payload.price || null,
-            } as unknown as DsItem,
-            ...previousItems,
-          ]
-        );
+      const previousData = getItemsCache(undefined);
+
+      if (previousData) {
+        setItemsCache(undefined, (items) => [
+          {
+            id: `temp-${Date.now()}`,
+            ...payload,
+            status: "active",
+            images: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            staleAt: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+            shop: "temp",
+            shopName: "temp",
+            sku: payload.sku || "",
+            description: payload.description || "",
+            price: payload.price || null,
+          } as unknown as DsItem,
+          ...items,
+        ]);
       }
-      return { previousItems };
+      return { previousData };
     },
-    onError: (_err, _newTodo, context) => {
-      if (context?.previousItems) {
-        queryClient.setQueryData(
-          [...QueryKeys.deadStock.myItems, undefined],
-          context.previousItems
-        );
+    onError: (_err, _payload, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(myItemsKey(undefined), context.previousData);
       }
     },
     onSettled: () => {
@@ -128,29 +144,22 @@ export const useUpdateItem = () => {
       await queryClient.cancelQueries({
         queryKey: QueryKeys.deadStock.myItems,
       });
-      const previousItems = queryClient.getQueryData<DsItem[]>([
-        ...QueryKeys.deadStock.myItems,
-        undefined,
-      ]);
+      const previousData = getItemsCache(undefined);
 
-      if (previousItems) {
-        queryClient.setQueryData<DsItem[]>(
-          [...QueryKeys.deadStock.myItems, undefined],
-          previousItems.map((item) =>
+      if (previousData) {
+        setItemsCache(undefined, (items) =>
+          items.map((item) =>
             item.id === variables.id
               ? ({ ...item, ...variables } as DsItem)
               : item
           )
         );
       }
-      return { previousItems };
+      return { previousData };
     },
-    onError: (_err, _newTodo, context) => {
-      if (context?.previousItems) {
-        queryClient.setQueryData(
-          [...QueryKeys.deadStock.myItems, undefined],
-          context.previousItems
-        );
+    onError: (_err, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(myItemsKey(undefined), context.previousData);
       }
     },
     onSettled: (_data, _error, variables) => {
@@ -169,25 +178,18 @@ export const useDeleteItem = () => {
       await queryClient.cancelQueries({
         queryKey: QueryKeys.deadStock.myItems,
       });
-      const previousItems = queryClient.getQueryData<DsItem[]>([
-        ...QueryKeys.deadStock.myItems,
-        undefined,
-      ]);
+      const previousData = getItemsCache(undefined);
 
-      if (previousItems) {
-        queryClient.setQueryData<DsItem[]>(
-          [...QueryKeys.deadStock.myItems, undefined],
-          previousItems.filter((item) => item.id !== id)
+      if (previousData) {
+        setItemsCache(undefined, (items) =>
+          items.filter((item) => item.id !== id)
         );
       }
-      return { previousItems };
+      return { previousData };
     },
     onError: (_err, _id, context) => {
-      if (context?.previousItems) {
-        queryClient.setQueryData(
-          [...QueryKeys.deadStock.myItems, undefined],
-          context.previousItems
-        );
+      if (context?.previousData) {
+        queryClient.setQueryData(myItemsKey(undefined), context.previousData);
       }
     },
     onSettled: () => {
@@ -206,14 +208,11 @@ export const useRefreshItem = () => {
       await queryClient.cancelQueries({
         queryKey: QueryKeys.deadStock.myItems,
       });
-      const previousItems = queryClient.getQueryData<DsItem[]>([
-        ...QueryKeys.deadStock.myItems,
-        undefined,
-      ]);
-      if (previousItems) {
-        queryClient.setQueryData<DsItem[]>(
-          [...QueryKeys.deadStock.myItems, undefined],
-          previousItems.map((item) =>
+      const previousData = getItemsCache(undefined);
+
+      if (previousData) {
+        setItemsCache(undefined, (items) =>
+          items.map((item) =>
             item.id === id
               ? {
                   ...item,
@@ -225,14 +224,11 @@ export const useRefreshItem = () => {
           )
         );
       }
-      return { previousItems };
+      return { previousData };
     },
     onError: (_err, _id, context) => {
-      if (context?.previousItems) {
-        queryClient.setQueryData(
-          [...QueryKeys.deadStock.myItems, undefined],
-          context.previousItems
-        );
+      if (context?.previousData) {
+        queryClient.setQueryData(myItemsKey(undefined), context.previousData);
       }
     },
     onSettled: (_data, _error, id) => {

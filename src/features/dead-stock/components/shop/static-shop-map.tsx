@@ -18,10 +18,12 @@ export const StaticShopMap = ({ shop }: StaticShopMapProps) => {
       container: ref.current,
       style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
       center: [shop.lng, shop.lat],
-      zoom: 15,
+      zoom: 14.5,
       interactive: false,
       attributionControl: false,
     });
+
+    map.setPadding({ top: 80, bottom: 40, left: 40, right: 40 });
 
     const addressLabel = [shop.address, shop.city, shop.pincode]
       .filter(Boolean)

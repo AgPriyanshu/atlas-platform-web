@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import type { DsSearchParams } from "api/dead-stock";
 import { useCategories, useSearchItems } from "api/dead-stock";
+import { getDeadStockOwnerToken } from "shared/local-storage";
 import { toaster } from "design-system/toaster/toaster-instance";
 import { useBuyerLocation } from "../../hooks/use-buyer-location";
 import { ViewToggle, type SearchView } from "./_view-toggle";
@@ -189,21 +190,40 @@ export const SearchPage = () => {
           </VStack>
 
           <VStack gap={1} align="end" flexShrink={0} pt={1}>
-            <Text fontSize="xs" color="fg.muted" whiteSpace="nowrap">
-              Shop owner?
-            </Text>
-            <HStack gap={2}>
-              <Button
-                size="xs"
-                variant="outline"
-                onClick={() => setSignupOpen(true)}
-              >
-                Sign up
-              </Button>
-              <Button size="xs" onClick={() => navigate("/dead-stock/login")}>
-                Login
-              </Button>
-            </HStack>
+            {getDeadStockOwnerToken() ? (
+              <>
+                <Text fontSize="xs" color="fg.muted" whiteSpace="nowrap">
+                  Shop owner
+                </Text>
+                <Button
+                  size="xs"
+                  onClick={() => navigate("/dead-stock/owner/inventory")}
+                >
+                  My inventory
+                </Button>
+              </>
+            ) : (
+              <>
+                <Text fontSize="xs" color="fg.muted" whiteSpace="nowrap">
+                  Shop owner?
+                </Text>
+                <HStack gap={2}>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => setSignupOpen(true)}
+                  >
+                    Sign up
+                  </Button>
+                  <Button
+                    size="xs"
+                    onClick={() => navigate("/dead-stock/login")}
+                  >
+                    Login
+                  </Button>
+                </HStack>
+              </>
+            )}
           </VStack>
         </HStack>
       </Box>
