@@ -43,8 +43,8 @@ const LeadRow = ({ lead }: { lead: DsLead }) => {
       p={4}
       borderWidth={1}
       borderRadius="lg"
-      borderColor={isNew ? "intent.primary" : "border.default"}
-      bg={isNew ? "surface.subtle" : "bg.panel"}
+      borderColor="border.default"
+      bg="bg.panel"
       w="full"
     >
       <Flex justify="space-between" align="flex-start" gap={3} wrap="wrap">
@@ -54,12 +54,7 @@ const LeadRow = ({ lead }: { lead: DsLead }) => {
               {lead.buyerName}
             </Text>
             {isNew && (
-              <Badge
-                bg="intent.success"
-                color="text.onIntent"
-                border="none"
-                size="sm"
-              >
+              <Badge variant="subtle" colorPalette="gray" size="sm">
                 New
               </Badge>
             )}
@@ -88,12 +83,7 @@ const LeadRow = ({ lead }: { lead: DsLead }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button
-                size="xs"
-                bg="intent.primary"
-                color="text.onIntent"
-                w="full"
-              >
+              <Button size="xs" variant="solid" colorPalette="gray" w="full">
                 Reply on WhatsApp
               </Button>
             </a>
@@ -140,7 +130,7 @@ export const LeadInbox = () => {
         <HStack gap={2}>
           <Heading size="md">Lead inbox</Heading>
           {newCount > 0 && (
-            <Badge bg="intent.success" color="text.onIntent" border="none">
+            <Badge variant="subtle" colorPalette="gray">
               {newCount} new
             </Badge>
           )}
@@ -152,8 +142,7 @@ export const LeadInbox = () => {
               key={f}
               size="xs"
               variant={filter === f ? "solid" : "outline"}
-              bg={filter === f ? "intent.primary" : undefined}
-              color={filter === f ? "text.onIntent" : undefined}
+              colorPalette="gray"
               onClick={() => setFilter(f)}
               textTransform="capitalize"
             >

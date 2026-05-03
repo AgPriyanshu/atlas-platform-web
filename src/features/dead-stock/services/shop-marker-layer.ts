@@ -98,7 +98,7 @@ export const mountShopMarkers = async (
     source: SOURCE_ID,
     filter: ["has", "point_count"],
     paint: {
-      "circle-color": "#0f766e",
+      "circle-color": "#222222",
       "circle-radius": ["step", ["get", "point_count"], 18, 20, 24, 100, 32],
       "circle-opacity": 0.9,
     },

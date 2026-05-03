@@ -8,6 +8,7 @@ import {
   mountShopMarkers,
   shopMarkerLayerIds,
 } from "../../services/shop-marker-layer";
+import { DS_MAP_STYLE } from "../../services/map-style";
 import { MapItemCarousel } from "./map-item-carousel";
 
 interface ResultsMapProps {
@@ -80,7 +81,7 @@ export const ResultsMap = ({
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+      style: DS_MAP_STYLE,
       center: [
         initialLngRef.current ?? 77.209,
         initialLatRef.current ?? 28.6139,

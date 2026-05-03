@@ -3,6 +3,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
 import type { DsShop } from "api/dead-stock";
+import { DS_MAP_STYLE } from "../../services/map-style";
 
 interface StaticShopMapProps {
   shop: DsShop;
@@ -16,7 +17,7 @@ export const StaticShopMap = ({ shop }: StaticShopMapProps) => {
 
     const map = new maplibregl.Map({
       container: ref.current,
-      style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+      style: DS_MAP_STYLE,
       center: [shop.lng, shop.lat],
       zoom: 14.5,
       interactive: false,

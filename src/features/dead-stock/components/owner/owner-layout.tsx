@@ -1,4 +1,5 @@
-import { Box, Button, Flex, HStack, Heading, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
+import { BrandHeading } from "../brand-heading";
 import { FiPackage, FiInbox, FiLogOut, FiShoppingBag } from "react-icons/fi";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { clearDeadStockOwnerToken, clearToken } from "shared/local-storage";
@@ -45,9 +46,7 @@ export const OwnerLayout = () => {
         <Flex align="center" justify="space-between" maxW="5xl" mx="auto">
           <HStack gap={6}>
             <Link to="/dead-stock">
-              <Heading size="md" fontWeight="bold" letterSpacing="tight">
-                Dead Stock
-              </Heading>
+              <BrandHeading size="md" />
             </Link>
             <HStack gap={1}>
               {NAV_ITEMS.map(({ label, to, icon }) => {

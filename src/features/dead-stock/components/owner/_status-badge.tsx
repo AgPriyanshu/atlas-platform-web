@@ -4,7 +4,7 @@ import type { DsItem } from "api/dead-stock";
 export const StatusBadge = ({ item }: { item: DsItem }) => {
   if (item.status === "hidden") {
     return (
-      <Badge bg="surface.disabled" color="text.muted" border="none">
+      <Badge variant="subtle" colorPalette="gray">
         Hidden
       </Badge>
     );
@@ -16,7 +16,7 @@ export const StatusBadge = ({ item }: { item: DsItem }) => {
 
   if (staleAt < now) {
     return (
-      <Badge bg="intent.danger" color="text.onIntent" border="none">
+      <Badge variant="outline" borderColor="fg" color="fg" border="1px solid">
         Stale — refresh to publish
       </Badge>
     );
@@ -24,14 +24,19 @@ export const StatusBadge = ({ item }: { item: DsItem }) => {
 
   if (staleAt < sevenDaysFromNow) {
     return (
-      <Badge bg="intent.warning" color="text.onIntent" border="none">
+      <Badge
+        variant="outline"
+        borderColor="fg.muted"
+        color="fg.muted"
+        border="1px solid"
+      >
         Refresh soon
       </Badge>
     );
   }
 
   return (
-    <Badge bg="intent.success" color="text.onIntent" border="none">
+    <Badge variant="subtle" colorPalette="gray">
       Active
     </Badge>
   );

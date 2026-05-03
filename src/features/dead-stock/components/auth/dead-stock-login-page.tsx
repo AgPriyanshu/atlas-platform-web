@@ -19,6 +19,7 @@ import { z } from "zod";
 import { useLogin } from "src/api/auth";
 import { toaster } from "design-system/toaster";
 import { setDeadStockOwnerToken } from "shared/local-storage";
+import { BrandHeading } from "../brand-heading";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -71,9 +72,7 @@ export const DeadStockLoginPage = () => {
       <VStack gap={8} w="full" maxW="sm">
         {/* Brand */}
         <VStack gap={1} textAlign="center">
-          <Heading size="2xl" fontWeight="bold" letterSpacing="tight">
-            Dead Stock
-          </Heading>
+          <BrandHeading size="2xl" />
           <Text color="fg.muted" fontSize="sm">
             Shop owner portal
           </Text>

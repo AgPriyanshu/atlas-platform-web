@@ -3,6 +3,7 @@ import {
   Button,
   Field,
   Input,
+  NativeSelect,
   Textarea,
   HStack,
   VStack,
@@ -152,23 +153,17 @@ export const ItemForm = ({ initialData, onClose }: ItemFormProps) => {
             name="category"
             control={control}
             render={({ field }) => (
-              <select
-                {...field}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--chakra-colors-border-default)",
-                  background: "var(--chakra-colors-bg-panel)",
-                }}
-              >
-                <option value="">Select a category</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <NativeSelect.Root>
+                <NativeSelect.Field {...field}>
+                  <option value="">Select a category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
             )}
           />
           {errors.category && (

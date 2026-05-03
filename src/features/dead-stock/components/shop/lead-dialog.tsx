@@ -92,6 +92,7 @@ export const LeadDialog = ({
     <Dialog.Root
       open={isOpen}
       onOpenChange={(event) => !event.open && onClose()}
+      placement="center"
     >
       <Portal>
         <Dialog.Backdrop />

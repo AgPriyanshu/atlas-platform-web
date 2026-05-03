@@ -3,7 +3,6 @@ import {
   Button,
   Center,
   Flex,
-  Heading,
   Spinner,
   Text,
   VStack,
@@ -17,6 +16,7 @@ import { useOnboardingState } from "../../hooks/use-onboarding-state";
 import { LocationStep } from "./steps/location-step";
 import { PhoneStep } from "./steps/phone-step";
 import { ShopDetailsStep } from "./steps/shop-details-step";
+import { BrandHeading } from "../brand-heading";
 
 const STEP_LABELS = ["Phone", "Shop details", "Location"];
 
@@ -72,9 +72,7 @@ export const OnboardingFlow = () => {
   return (
     <Box className="onboarding-flow" w="full" minH="100vh" px={4} py={8}>
       <Flex justify="space-between" align="center" mb={8} maxW="sm" mx="auto">
-        <Heading size="md" fontWeight="bold">
-          Dead Stock
-        </Heading>
+        <BrandHeading size="md" />
         <Button variant="ghost" size="sm" onClick={handleLogout}>
           Logout
         </Button>

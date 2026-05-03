@@ -57,6 +57,7 @@ export const ShopSignupDialog = ({
       open={isOpen}
       onOpenChange={({ open }) => !open && handleClose()}
       size="sm"
+      placement="center"
     >
       <Dialog.Backdrop />
       <Dialog.Positioner>

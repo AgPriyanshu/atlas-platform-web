@@ -1,10 +1,15 @@
 import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
 import type { DsSearchParams } from "api/dead-stock";
 import { useCategories, useSearchItems } from "api/dead-stock";
-import { getDeadStockOwnerToken } from "shared/local-storage";
 import { toaster } from "design-system/toaster/toaster-instance";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { BrandHeading } from "../brand-heading";
+import {
+  getDeadStockOwnerToken,
+  getSavedSearchLocation,
+  setSavedSearchLocation,
+} from "shared/local-storage";
 import { useBuyerLocation } from "../../hooks/use-buyer-location";
 import { ViewToggle, type SearchView } from "./_view-toggle";
 import { FilterChips } from "./filter-chips";
@@ -12,8 +17,8 @@ import { LocationPickerDialog } from "./location-picker-dialog";
 import { ResultsList } from "./results-list";
 import { ResultsMap } from "./results-map";
 import { SearchBar } from "./search-bar";
-import { ShopSignupDialog } from "./shop-signup-dialog";
 import { flattenResults } from "./search-utils";
+import { ShopSignupDialog } from "./shop-signup-dialog";
 
 const numberParam = (value: string | null) =>
   value === null || value === "" ? undefined : Number(value);
@@ -26,7 +31,7 @@ export const SearchPage = () => {
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [customLocationLabel, setCustomLocationLabel] = useState<string | null>(
-    null
+    () => getSavedSearchLocation()?.label ?? null
   );
 
   const view = (searchParams.get("view") || "map") as SearchView;
@@ -43,6 +48,19 @@ export const SearchPage = () => {
     }),
     [searchParams]
   );
+
+  useEffect(() => {
+    if (searchParams.get("lat") || searchParams.get("lng")) return;
+    const saved = getSavedSearchLocation();
+    if (!saved) return;
+    const next = new URLSearchParams(searchParams);
+    next.set("lat", String(saved.lat));
+    next.set("lng", String(saved.lng));
+    next.set("radiusKm", next.get("radiusKm") || "5");
+    setSearchParams(next, { replace: true });
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (
@@ -97,6 +115,7 @@ export const SearchPage = () => {
     async ({ lat, lng }: { lat: number; lng: number }) => {
       updateParams({ lat, lng });
       setCustomLocationLabel("Custom location");
+      setSavedSearchLocation({ lat, lng, label: "Custom location" });
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=14`,
@@ -122,6 +141,7 @@ export const SearchPage = () => {
           addr.village ??
           "Custom location";
         setCustomLocationLabel(label);
+        setSavedSearchLocation({ lat, lng, label });
       } catch {
         // Keep "Custom location" as fallback.
       }
@@ -166,6 +186,9 @@ export const SearchPage = () => {
         px={4}
         py={3}
       >
+        <HStack justify="center" mb={3} mt={3}>
+          <BrandHeading size="3xl" />
+        </HStack>
         <HStack justify="space-between" align="flex-start" wrap="wrap" gap={4}>
           <VStack align="stretch" gap={2} maxW="2xl" flex={1}>
             <HStack gap={3} align="center">

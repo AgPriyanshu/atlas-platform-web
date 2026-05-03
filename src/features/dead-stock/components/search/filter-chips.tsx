@@ -1,4 +1,4 @@
-import { Badge, Button, HStack } from "@chakra-ui/react";
+import { Button, HStack } from "@chakra-ui/react";
 import { FiMapPin } from "react-icons/fi";
 import type { DsCategory, DsSearchParams, DsSort } from "api/dead-stock";
 
@@ -32,18 +32,15 @@ export const FilterChips = ({
 }: FilterChipsProps) => (
   <HStack gap={2} overflowX="auto" pb={1} align="center" flexShrink={0}>
     {locationLabel && (
-      <Badge
+      <Button
+        size="xs"
         variant="outline"
-        gap={1}
         flexShrink={0}
-        cursor="pointer"
         onClick={onEditLocation}
-        _hover={{ bg: "bg.muted" }}
-        userSelect="none"
       >
         <FiMapPin />
         {locationLabel}
-      </Badge>
+      </Button>
     )}
 
     {DISTANCES.map((distance) => (
@@ -80,7 +77,6 @@ export const FilterChips = ({
     >
       <option value="distance">Nearest first</option>
       <option value="recent">Newest first</option>
-      <option value="price">Lowest price</option>
     </select>
   </HStack>
 );

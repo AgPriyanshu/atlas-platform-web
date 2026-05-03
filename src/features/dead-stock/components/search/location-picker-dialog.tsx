@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { DS_MAP_STYLE } from "../../services/map-style";
 import { useEffect, useRef, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 
@@ -95,7 +96,7 @@ export const LocationPickerDialog = ({
 
       const map = new maplibregl.Map({
         container: containerRef.current,
-        style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+        style: DS_MAP_STYLE,
         center: [currentLng ?? 77.209, currentLat ?? 28.6139],
         zoom: 13,
       });
@@ -167,6 +168,7 @@ export const LocationPickerDialog = ({
     <Dialog.Root
       open={isOpen}
       onOpenChange={(event) => !event.open && onClose()}
+      placement="center"
     >
       <Portal>
         <Dialog.Backdrop />
@@ -238,11 +240,7 @@ export const LocationPickerDialog = ({
               <Button variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
-              <Button
-                bg="intent.primary"
-                color="text.onIntent"
-                onClick={handleConfirm}
-              >
+              <Button variant="solid" onClick={handleConfirm}>
                 Use this location
               </Button>
             </Dialog.Footer>
