@@ -1,15 +1,15 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
-import { BrandHeading } from "../brand-heading";
-import { FiPackage, FiInbox, FiLogOut, FiShoppingBag } from "react-icons/fi";
+import { queryClient } from "api/query-client";
+import { FiInbox, FiLogOut, FiShoppingBag } from "react-icons/fi";
+import { MdOutlineInventory2 } from "react-icons/md";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { clearDeadStockOwnerToken, clearToken } from "shared/local-storage";
-import { queryClient } from "api/query-client";
-
+import { BrandHeading } from "../brand-heading";
 const NAV_ITEMS = [
   {
     label: "Inventory",
     to: "/dead-stock/owner/inventory",
-    icon: <FiPackage />,
+    icon: <MdOutlineInventory2 />,
   },
   { label: "Leads", to: "/dead-stock/owner/leads", icon: <FiInbox /> },
   { label: "My Shop", to: "/dead-stock/owner/shop", icon: <FiShoppingBag /> },

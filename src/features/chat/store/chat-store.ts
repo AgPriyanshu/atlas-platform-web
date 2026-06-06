@@ -4,8 +4,7 @@ import type {
   UIAction,
   WebSocketIncomingMessage,
 } from "api/chat/types";
-
-export type ConnectionStatus = "disconnected" | "connecting" | "connected";
+import { ConnectionStatus } from "./types";
 
 export class ChatStore {
   messages: ChatMessageResponse[] = [];
@@ -13,7 +12,7 @@ export class ChatStore {
   isPanelOpen = false;
   isSessionListOpen = false;
   isWaitingForResponse = false;
-  connectionStatus: ConnectionStatus = "disconnected";
+  connectionStatus: ConnectionStatus = ConnectionStatus.Disconnected;
   pendingUIActions: UIAction[] = [];
 
   constructor() {
@@ -51,6 +50,7 @@ export class ChatStore {
    */
   addOptimisticMessage(content: string, userId: number): string {
     const tempId = `temp-${Date.now()}`;
+
     this.messages.push({
       id: tempId,
       sessionId: this.activeSessionId ?? "",
@@ -58,7 +58,9 @@ export class ChatStore {
       userId,
       role: "user",
     });
+
     this.isWaitingForResponse = true;
+
     return tempId;
   }
 
@@ -70,8 +72,10 @@ export class ChatStore {
       // If this is the server echo of a user message, replace the optimistic one
       if (data.role === "user") {
         const optimisticIndex = this.messages.findIndex(
-          (m) => m.id.startsWith("temp-") && m.message === data.message
+          (message) =>
+            message.id.startsWith("temp-") && message.message === data.message
         );
+
         if (optimisticIndex !== -1) {
           this.messages[optimisticIndex] = {
             id: data.id,
@@ -87,15 +91,13 @@ export class ChatStore {
       // Handle assistant message (chunked or whole)
       if (data.role === "assistant") {
         this.isWaitingForResponse = false;
-
         const existingMessage = this.messages.find((m) => m.id === data.id);
 
         if (existingMessage) {
           if (data.message) {
-            existingMessage.message += data.message; // Append chunk
+            existingMessage.message += data.message;
           }
         } else {
-          // Only push if there's content or it's not a chunk
           if (data.message || !data.isChunk) {
             this.messages.push({
               id: data.id,
@@ -106,6 +108,11 @@ export class ChatStore {
             });
           }
         }
+
+        if (!data.isChunk && data.ui_action) {
+          this.setPendingUIActions([data.ui_action]);
+        }
+
         return;
       }
 

@@ -1,3 +1,5 @@
+import type { UIActionType } from "./constants";
+
 export interface ChatSessionResponse {
   id: string;
   name: string;
@@ -39,6 +41,7 @@ export interface WebSocketIncomingMessage {
   userId: number;
   role: "user" | "assistant";
   isChunk?: boolean;
+  ui_action?: UIAction;
 }
 
 export interface WebSocketOutgoingMessage {
@@ -51,12 +54,6 @@ export interface WebSocketErrorMessage {
 
 export interface UIAction {
   app: string;
-  action_type: string;
+  type: UIActionType;
   payload: Record<string, unknown>;
-}
-
-export interface WebSocketUIActionMessage {
-  type: "ui_action";
-  sessionId: string;
-  actions: UIAction[];
 }

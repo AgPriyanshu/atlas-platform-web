@@ -7,11 +7,15 @@ import { MessageBubble } from "./message-bubble";
 import { TypingIndicator } from "./typing-indicator";
 
 export const MessageList = observer(() => {
+  // Refs.
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Stores.
   const { messages, isWaitingForResponse } = chatStore;
 
-  // Auto-scroll on new messages
+  // useEffects.
   useEffect(() => {
+    // Auto-scroll on new messages
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, isWaitingForResponse]);
 

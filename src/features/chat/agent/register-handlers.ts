@@ -1,4 +1,5 @@
 import { ActionRegistry } from "./action-registry";
+import { GlobalActionHandler } from "./global-action-handler";
 import { WebGISActionHandler } from "../../web-gis/actions/web-gis-action-handler";
 import { TodoActionHandler } from "../../todo/actions/todo-action-handler";
 import { URLShortenerActionHandler } from "../../url-shortner/actions/url-shortener-action-handler";
@@ -10,6 +11,7 @@ import { URLShortenerActionHandler } from "../../url-shortner/actions/url-shorte
  * To add a new app's handler, simply import it and register here.
  */
 export const registerAllHandlers = (): void => {
+  ActionRegistry.register(new GlobalActionHandler());
   ActionRegistry.register(new WebGISActionHandler());
   ActionRegistry.register(new TodoActionHandler());
   ActionRegistry.register(new URLShortenerActionHandler());

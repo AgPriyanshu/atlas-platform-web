@@ -5,6 +5,7 @@
       "api/*": ["src/api/*"],
       "app/*": ["src/app/*"],
       "design-system/*": ["src/design-system/*"],
+      "features/*": ["src/features/*"],
       "shared/*": ["src/shared/*"]
     },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",

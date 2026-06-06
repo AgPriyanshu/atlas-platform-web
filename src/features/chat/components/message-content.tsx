@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -11,10 +12,27 @@ interface MessageContentProps {
 
 interface ParsedContent {
   thinking: string | null;
+  isThinking: boolean;
   response: string;
 }
 
 const parseThinkingContent = (content: string): ParsedContent => {
+  const openIndex = content.indexOf("<think>");
+
+  if (openIndex === -1) {
+    return { thinking: null, isThinking: false, response: content };
+  }
+
+  const closeIndex = content.indexOf("</think>");
+
+  if (closeIndex === -1) {
+    return {
+      thinking: content.slice(openIndex + 7).trim(),
+      isThinking: true,
+      response: "",
+    };
+  }
+
   const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
   const thinkBlocks: string[] = [];
   let match;
@@ -23,12 +41,9 @@ const parseThinkingContent = (content: string): ParsedContent => {
     thinkBlocks.push(match[1].trim());
   }
 
-  if (thinkBlocks.length === 0) {
-    return { thinking: null, response: content };
-  }
-
   return {
     thinking: thinkBlocks.join("\n\n"),
+    isThinking: false,
     response: content.replace(/<think>[\s\S]*?<\/think>/g, "").trim(),
   };
 };
@@ -80,6 +95,14 @@ const markdownStyles = {
   },
 };
 
+const shimmerStyles = {
+  "@keyframes thinking-pulse": {
+    "0%, 100%": { opacity: 0.4 },
+    "50%": { opacity: 1 },
+  },
+  animation: "thinking-pulse 1.8s ease-in-out infinite",
+};
+
 const codeComponents = {
   code({
     className,
@@ -109,15 +132,30 @@ const codeComponents = {
 };
 
 export const MessageContent = ({ content }: MessageContentProps) => {
-  const { thinking, response } = parseThinkingContent(content);
+  const {
+    thinking,
+    isThinking,
+    response: contentWithoutThinking,
+  } = parseThinkingContent(content);
+  const [userOpen, setUserOpen] = useState(false);
+
+  // Derive accordion value: always open while thinking, otherwise use user's preference.
+  const accordionValue = isThinking
+    ? ["thinking"]
+    : userOpen
+      ? ["thinking"]
+      : [];
 
   return (
     <Box className="message-content">
       {thinking !== null && (
         <Accordion.Root
           collapsible
-          defaultValue={[]}
-          mb={response ? 3 : 0}
+          value={accordionValue}
+          onValueChange={(detail) =>
+            setUserOpen(detail.value.includes("thinking"))
+          }
+          mb={contentWithoutThinking ? 3 : 0}
           variant="plain"
         >
           <Accordion.Item value="thinking">
@@ -137,10 +175,14 @@ export const MessageContent = ({ content }: MessageContentProps) => {
               border="none"
               outline="none"
             >
-              <Text>Thought through the problem</Text>
-              <Accordion.ItemIndicator>
-                <LuChevronDown size={12} />
-              </Accordion.ItemIndicator>
+              <Text css={isThinking ? shimmerStyles : undefined}>
+                {isThinking ? "Thinking…" : "Thought through the problem"}
+              </Text>
+              {!isThinking && (
+                <Accordion.ItemIndicator>
+                  <LuChevronDown size={12} />
+                </Accordion.ItemIndicator>
+              )}
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
               <Box
@@ -149,11 +191,13 @@ export const MessageContent = ({ content }: MessageContentProps) => {
                 pl={3}
                 mt={1}
                 mb={1}
-                opacity={0.65}
                 fontSize="xs"
                 color="text.secondary"
                 fontStyle="italic"
-                css={markdownStyles}
+                css={{
+                  ...markdownStyles,
+                  ...(isThinking ? shimmerStyles : { opacity: 0.65 }),
+                }}
               >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -167,13 +211,13 @@ export const MessageContent = ({ content }: MessageContentProps) => {
         </Accordion.Root>
       )}
 
-      {response && (
+      {contentWithoutThinking && (
         <Box css={markdownStyles}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={codeComponents}
           >
-            {response}
+            {contentWithoutThinking}
           </ReactMarkdown>
         </Box>
       )}

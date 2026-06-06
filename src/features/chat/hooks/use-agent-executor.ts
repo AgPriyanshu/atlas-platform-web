@@ -34,7 +34,13 @@ export const useAgentExecutor = () => {
         isProcessing.current = true;
 
         try {
-          const actions = chatStore.pendingUIActions.slice() as RawUIAction[];
+          const actions: RawUIAction[] = chatStore.pendingUIActions.map(
+            (a) => ({
+              app: a.app ?? "global",
+              action_type: a.type,
+              payload: a.payload,
+            })
+          );
           chatStore.clearPendingUIActions();
           const results = await AgentExecutor.executeBatch(actions);
 

@@ -1,5 +1,7 @@
-import { Route, Routes } from "react-router";
+import { useEffect } from "react";
+import { Route, Routes, useNavigate } from "react-router";
 import { App } from "src/app";
+import { navigationService } from "shared/navigation/navigation-service";
 import { ProtectedRoute } from "./protected-route";
 import { RoutePath } from "./constants";
 import {
@@ -14,6 +16,12 @@ import {
 } from "src/features";
 
 export const AppRouter = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigationService.setNavigate(navigate);
+  }, [navigate]);
+
   return (
     <Routes>
       {/* Protected routes - all children require authentication */}

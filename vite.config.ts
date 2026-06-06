@@ -21,6 +21,7 @@ export default defineConfig((_) => {
         api: path.resolve(dirname, "src/api"),
         app: path.resolve(dirname, "src/app"),
         "design-system": path.resolve(dirname, "src/design-system"),
+        features: path.resolve(dirname, "src/features"),
         shared: path.resolve(dirname, "src/shared"),
       },
     },
