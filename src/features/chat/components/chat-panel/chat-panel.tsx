@@ -1,8 +1,9 @@
 import { Box, VStack } from "@chakra-ui/react";
 import { observer } from "mobx-react-lite";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ResizableBox } from "react-resizable";
 import useResizeObserver from "use-resize-observer";
+import { useChatSessions } from "api/chat";
 import { DEFAULT_WIDTH, MAX_WIDTH, MIN_WIDTH } from "../../constants";
 import { useWebSocket } from "../../hooks/use-websocket/use-websocket";
 import { chatStore } from "../../store/chat-store";
@@ -26,7 +27,19 @@ export const ChatPanel = observer(() => {
   const { ref: containerRef, height: containerHeight = 600 } =
     useResizeObserver<HTMLDivElement>();
 
+  const { data: sessionsData } = useChatSessions();
   const { sendMessage } = useWebSocket(isPanelOpen ? activeSessionId : null);
+
+  useEffect(() => {
+    if (!isPanelOpen || activeSessionId !== null) return;
+    const sessions = sessionsData?.data ?? [];
+    if (sessions.length === 0) return;
+    const latest = [...sessions].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+    chatStore.setActiveSession(latest.id);
+  }, [isPanelOpen, sessionsData, activeSessionId]);
 
   // Handlers.
   const handleSend = (message: string) => {
