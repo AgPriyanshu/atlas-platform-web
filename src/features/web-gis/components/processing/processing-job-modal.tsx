@@ -15,7 +15,7 @@ import {
   type ProcessingToolDefinition,
 } from "api/web-gis";
 import { toaster } from "design-system/toaster";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { ToolParameterForm } from "./tool-parameter-form";
 
 const AUTO_SUBMIT_DELAY_MS = 1000;
@@ -54,7 +54,9 @@ export const ProcessingJobModal = ({
 
   // Keep a stable ref to handleSubmit so the effect closure doesn't go stale.
   const handleSubmitRef = useRef(handleSubmit);
-  handleSubmitRef.current = handleSubmit;
+  useLayoutEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   // Flatten all leaf dataset nodes compatible with this tool.
   const compatibleDatasets = useMemo(() => {

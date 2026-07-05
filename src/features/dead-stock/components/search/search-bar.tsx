@@ -24,7 +24,8 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setDraft(value);
+    const id = setTimeout(() => setDraft(value));
+    return () => clearTimeout(id);
   }, [value]);
 
   const { data: suggestions = [] } = useSearchAutocomplete(draft);

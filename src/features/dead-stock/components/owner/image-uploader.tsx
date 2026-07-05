@@ -116,7 +116,10 @@ export const ImageUploader = ({
     hasPendingVariantsRef.current = hasPending;
 
     if (hasPending) {
-      setPollUntil((prev) => Math.max(prev, Date.now() + POLL_MS));
+      const id = setTimeout(() => {
+        setPollUntil((prev) => Math.max(prev, Date.now() + POLL_MS));
+      });
+      return () => clearTimeout(id);
     }
   }, [images]);
 
