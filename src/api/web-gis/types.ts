@@ -177,3 +177,36 @@ export interface CreateProcessingJobPayload {
   outputName?: string;
   outputParentId?: string | null;
 }
+
+// Document / RAG types.
+export const DocumentStatus = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  READY: "ready",
+  FAILED: "failed",
+} as const;
+
+export type DocumentStatus =
+  (typeof DocumentStatus)[keyof typeof DocumentStatus];
+
+export interface DocumentResponse {
+  id: string;
+  title: string;
+  fileName: string;
+  fileSize: number;
+  status: DocumentStatus;
+  pageCount: number | null;
+  errorMessage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentSearchResult {
+  chunkId: string;
+  documentId: string;
+  documentTitle: string;
+  pageNumber: number | null;
+  chunkIndex: number;
+  text: string;
+  distance: number;
+}

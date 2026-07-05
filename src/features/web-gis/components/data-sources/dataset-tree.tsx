@@ -82,7 +82,7 @@ export const DatasetTree = () => {
     <Box
       className="dataset-tree-container"
       w={"full"}
-      flex={0.5}
+      h={"full"}
       borderColor={"border.default"}
       borderWidth={"1px"}
       borderRadius={"lg"}

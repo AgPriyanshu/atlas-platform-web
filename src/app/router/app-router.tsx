@@ -13,6 +13,7 @@ import {
   TodoPage,
   URLShortner,
   WebGIS,
+  WorkloadTreePage,
 } from "src/features";
 
 export const AppRouter = () => {
@@ -43,6 +44,7 @@ export const AppRouter = () => {
         <Route path={RoutePath.Store} element={<AppItemPlaceholder />} />
         <Route path={RoutePath.LevelUp} element={<LevelUpPage />} />
         <Route path={RoutePath.WhiteBoard} element={<AppItemPlaceholder />} />
+        <Route path={RoutePath.WorkloadTree} element={<WorkloadTreePage />} />
         <Route path={RoutePath.Inventory} element={<AppItemPlaceholder />} />
       </Route>
 

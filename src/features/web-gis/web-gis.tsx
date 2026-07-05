@@ -1,9 +1,9 @@
-import { Box, Flex, VStack } from "@chakra-ui/react";
+import { Box, Flex, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ResizableBox } from "react-resizable";
 
 import { LayerPanel, MapCanvas, MapControls, Toolbar } from "./components";
-import { DatasetTree } from "./components/data-sources";
+import { DataSourcesPanel } from "./components/data-sources";
 import { ProcessingBar } from "./components/processing";
 import { DEFAULT_WORKSPACE_ID } from "shared/map/domain";
 import { workspaceManager } from "shared/map/stores";
@@ -56,7 +56,9 @@ export const WebGIS = () => {
         axis="x"
       >
         <VStack h="full">
-          <DatasetTree />
+          <Box w="full" flex={1} minH={0} overflow="hidden">
+            <DataSourcesPanel />
+          </Box>
           <Box
             className="layers-panel-container"
             w={"full"}
@@ -67,6 +69,17 @@ export const WebGIS = () => {
             borderRadius={"lg"}
             overflow={"hidden"}
           >
+            <Flex
+              h="40px"
+              px={3}
+              alignItems="center"
+              borderBottomWidth="1px"
+              borderColor="border.default"
+            >
+              <Text fontSize="xs" fontWeight="semibold" color="fg.muted">
+                Layers
+              </Text>
+            </Flex>
             <Box overflow="auto" h="calc(100% - 40px)">
               <LayerPanel />
             </Box>

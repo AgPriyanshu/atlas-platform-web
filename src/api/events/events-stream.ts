@@ -32,10 +32,25 @@ type ProcessingFailedMessage = {
   error: string;
 };
 
+type AgentLayerCreatedMessage = {
+  type: "agent_layer_created";
+  layerId: string;
+  layerName: string;
+  datasetId: string;
+  datasetType: string;
+};
+
+type DocumentProcessedMessage = {
+  type: "document_processed";
+  documentId: string;
+};
+
 type ProcessingMessage =
   | ProcessingProgressMessage
   | ProcessingCompleteMessage
-  | ProcessingFailedMessage;
+  | ProcessingFailedMessage
+  | AgentLayerCreatedMessage
+  | DocumentProcessedMessage;
 
 const tryParseProcessingMessage = (
   content: string
@@ -47,7 +62,9 @@ const tryParseProcessingMessage = (
       parsed &&
       typeof parsed === "object" &&
       typeof parsed.type === "string" &&
-      parsed.type.startsWith("processing_")
+      (parsed.type.startsWith("processing_") ||
+        parsed.type === "agent_layer_created" ||
+        parsed.type === "document_processed")
     ) {
       return toCamelCase(parsed) as ProcessingMessage;
     }
@@ -98,6 +115,17 @@ const applyProcessingMessage = (message: ProcessingMessage) => {
 
   if (message.type === "processing_failed") {
     queryClient.invalidateQueries({ queryKey: QueryKeys.processingJobs });
+    return;
+  }
+
+  if (message.type === "agent_layer_created") {
+    queryClient.invalidateQueries({ queryKey: QueryKeys.layers });
+    queryClient.invalidateQueries({ queryKey: QueryKeys.datasets });
+    return;
+  }
+
+  if (message.type === "document_processed") {
+    queryClient.invalidateQueries({ queryKey: QueryKeys.documents });
   }
 };
 

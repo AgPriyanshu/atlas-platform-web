@@ -10,6 +10,7 @@ export const RoutePath = {
   Todo: "/todo",
   URLShortner: "/url-shortner",
   WhiteBoard: "/whiteboard",
+  WorkloadTree: "/workload-tree",
 } as const;
 
 export type RoutePath = (typeof RoutePath)[keyof typeof RoutePath];

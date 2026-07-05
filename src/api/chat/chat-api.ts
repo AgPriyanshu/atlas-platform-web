@@ -3,12 +3,35 @@ import type { ApiResponse } from "api/types";
 import type { AxiosResponse } from "axios";
 import api from "../api";
 import type {
+  ChatMessageResponse,
   ChatSessionListResponse,
   ChatSessionResponse,
   CreateChatSessionPayload,
   LLMListResponse,
 } from "./types";
 import { QueryKeys } from "api/query-keys";
+
+export const useChatMessages = (sessionId: string | null) => {
+  return useQuery({
+    queryKey: QueryKeys.chatMessages(sessionId ?? ""),
+    queryFn: async () => {
+      return await api.get<ApiResponse<Record<string, unknown>[]>>(
+        `/ai/messages/?session_id=${sessionId}`
+      );
+    },
+    select: (
+      response: AxiosResponse<ApiResponse<Record<string, unknown>[]>>
+    ): ChatMessageResponse[] =>
+      (response.data.data ?? []).map((m) => ({
+        id: m.id as string,
+        sessionId: (m.sessionId ?? m.session) as string,
+        message: (m.content ?? m.message ?? "") as string,
+        userId: (m.userId ?? m.user) as number,
+        role: m.role as "user" | "assistant",
+      })),
+    enabled: !!sessionId,
+  });
+};
 
 export const useChatSessions = () => {
   return useQuery({

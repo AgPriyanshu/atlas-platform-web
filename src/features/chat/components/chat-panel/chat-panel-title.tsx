@@ -1,5 +1,5 @@
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
-import { FiSidebar, FiWifi, FiWifiOff, FiX } from "react-icons/fi";
+import { FiSidebar, FiTrash2, FiWifi, FiWifiOff, FiX } from "react-icons/fi";
 import { chatStore } from "../../store/chat-store";
 import { ConnectionStatus } from "../../store/types";
 
@@ -7,12 +7,16 @@ type ChatPanelTitleProps = {
   activeSessionId: string | null;
   connectionStatus: ConnectionStatus;
   isSessionListOpen: boolean;
+  isDeletingSession: boolean;
+  onDeleteSession: () => void;
 };
 
 export const ChatPanelTitle: React.FC<ChatPanelTitleProps> = ({
   activeSessionId,
   connectionStatus,
   isSessionListOpen,
+  isDeletingSession,
+  onDeleteSession,
 }) => {
   return (
     <Flex
@@ -71,6 +75,19 @@ export const ChatPanelTitle: React.FC<ChatPanelTitleProps> = ({
             color="intent.success"
           >
             <FiWifi size={14} />
+          </IconButton>
+        )}
+        {activeSessionId && (
+          <IconButton
+            aria-label="Delete session"
+            size="xs"
+            variant="ghost"
+            color="text.muted"
+            _hover={{ color: "intent.danger", bg: "surface.hover" }}
+            onClick={onDeleteSession}
+            loading={isDeletingSession}
+          >
+            <FiTrash2 size={14} />
           </IconButton>
         )}
         <IconButton

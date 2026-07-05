@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { EnvVariable } from "app/config/env-variables";
 import { getAccessToken } from "shared/local-storage/token";
 import type {
+  AgentStatusMessage,
   WebSocketIncomingMessage,
   WebSocketErrorMessage,
 } from "api/chat/types";
@@ -27,6 +28,13 @@ export const useWebSocket = (sessionId: string | null) => {
     },
     []
   );
+
+  const stopResponse = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "stop" }));
+    }
+    chatStore.stopWaiting();
+  }, []);
 
   const disconnect = useCallback(() => {
     cleanupRef.current?.();
@@ -73,10 +81,16 @@ export const useWebSocket = (sessionId: string | null) => {
         try {
           const msg = JSON.parse(event.data) as
             | WebSocketIncomingMessage
-            | WebSocketErrorMessage;
+            | WebSocketErrorMessage
+            | AgentStatusMessage;
 
           if ("error" in msg) {
             console.error("[WebSocket] Server error:", msg.error);
+            return;
+          }
+
+          if ("type" in msg && msg.type === "agent_status") {
+            chatStore.setAgentStatus((msg as AgentStatusMessage).status);
             return;
           }
 
@@ -111,5 +125,5 @@ export const useWebSocket = (sessionId: string | null) => {
     return cleanup;
   }, [sessionId]);
 
-  return { sendMessage, disconnect, reconnect };
+  return { sendMessage, stopResponse, disconnect, reconnect };
 };

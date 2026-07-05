@@ -25,6 +25,7 @@ export const QueryKeys = {
   urls: ["/url-shortner/urls/"],
   // Chat.
   chatSessions: ["/ai/chat-sessions"],
+  chatMessages: (sessionId: string) => [`/ai/messages`, sessionId],
   llms: ["/ai/llms"],
   // Processing jobs.
   processingJobs: ["/web-gis/processing"],
@@ -46,5 +47,13 @@ export const QueryKeys = {
       ["dead-stock", "search", params] as const,
     autocomplete: (q: string) => ["dead-stock", "autocomplete", q] as const,
     leadInbox: ["dead-stock", "leads", "inbox"] as const,
+  },
+  // Documents (RAG).
+  documents: ["/web-gis/documents"],
+  // Workload Tree.
+  workload: {
+    employeeTree: ["/workload/employees/tree"] as const,
+    workItems: (employeeId: string) =>
+      ["/workload/employees", employeeId, "work-items"] as const,
   },
 };

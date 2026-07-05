@@ -7,7 +7,7 @@ import { Accordion, Box, Text } from "@chakra-ui/react";
 import { LuChevronDown } from "react-icons/lu";
 
 interface MessageContentProps {
-  content: string;
+  content: string | undefined;
 }
 
 interface ParsedContent {
@@ -16,7 +16,9 @@ interface ParsedContent {
   response: string;
 }
 
-const parseThinkingContent = (content: string): ParsedContent => {
+const parseThinkingContent = (content: string | undefined): ParsedContent => {
+  if (!content) return { thinking: null, isThinking: false, response: "" };
+
   const openIndex = content.indexOf("<think>");
 
   if (openIndex === -1) {
@@ -136,7 +138,7 @@ export const MessageContent = ({ content }: MessageContentProps) => {
     thinking,
     isThinking,
     response: contentWithoutThinking,
-  } = parseThinkingContent(content);
+  } = parseThinkingContent(content ?? "");
   const [userOpen, setUserOpen] = useState(false);
 
   // Derive accordion value: always open while thinking, otherwise use user's preference.

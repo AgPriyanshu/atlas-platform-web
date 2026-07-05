@@ -11,7 +11,7 @@ export const MessageList = observer(() => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Stores.
-  const { messages, isWaitingForResponse } = chatStore;
+  const { messages, isWaitingForResponse, agentStatus } = chatStore;
 
   // useEffects.
   useEffect(() => {
@@ -72,7 +72,7 @@ export const MessageList = observer(() => {
       {messages.map((msg) => (
         <MessageBubble key={msg.id} message={msg} />
       ))}
-      {isWaitingForResponse && <TypingIndicator />}
+      {isWaitingForResponse && <TypingIndicator status={agentStatus} />}
       <div ref={bottomRef} />
     </Flex>
   );

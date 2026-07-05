@@ -4,6 +4,7 @@ import {
   FaLink,
   FaMapMarkedAlt,
   FaRegListAlt,
+  FaSitemap,
   FaStoreAlt,
   FaWarehouse,
 } from "react-icons/fa";
@@ -75,5 +76,12 @@ export const apps: AppCard[] = [
     icon: FaWarehouse,
     route: RoutePath.DeadStock,
     category: AppCategory.Business,
+  },
+  {
+    title: "Workload Tree",
+    description: "Visualize org hierarchy and team workload at a glance",
+    icon: FaSitemap,
+    route: RoutePath.WorkloadTree,
+    category: AppCategory.Productivity,
   },
 ];

@@ -7,110 +7,9 @@ import type {
   ProcessingToolDefinition,
   ProcessingToolsResponse,
 } from "api/web-gis/types";
-import { Action, ActionHandler } from "../../chat/agent/action";
-import type { ActionResult, RawUIAction } from "../../chat/agent/types";
+import { Action } from "../../chat/agent/action";
+import type { ActionResult } from "../../chat/agent/types";
 import { workspaceManager } from "shared/map/stores/workspace-manager";
-
-// ---------------------------------------------------------------------------
-// Action classes
-// ---------------------------------------------------------------------------
-
-export class LoadDatasetAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "load_dataset";
-  readonly payload: { dataset_name: string };
-
-  constructor(datasetName: string) {
-    super();
-    this.payload = { dataset_name: datasetName };
-  }
-
-  validate(): boolean {
-    return Boolean(this.payload.dataset_name);
-  }
-}
-
-export class RemoveLayerAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "remove_layer";
-  readonly payload: { dataset_name: string };
-
-  constructor(datasetName: string) {
-    super();
-    this.payload = { dataset_name: datasetName };
-  }
-
-  validate(): boolean {
-    return Boolean(this.payload.dataset_name);
-  }
-}
-
-export class FitToLayerAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "fit_to_layer";
-  readonly payload: { dataset_name: string };
-
-  constructor(datasetName: string) {
-    super();
-    this.payload = { dataset_name: datasetName };
-  }
-
-  validate(): boolean {
-    return Boolean(this.payload.dataset_name);
-  }
-}
-
-export class ToggleVisibilityAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "toggle_visibility";
-  readonly payload: { dataset_name: string };
-
-  constructor(datasetName: string) {
-    super();
-    this.payload = { dataset_name: datasetName };
-  }
-
-  validate(): boolean {
-    return Boolean(this.payload.dataset_name);
-  }
-}
-
-export class MapZoomToAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "map_zoom_to";
-  readonly payload: { latitude: number; longitude: number };
-
-  constructor(latitude: number, longitude: number) {
-    super();
-    this.payload = { latitude, longitude };
-  }
-
-  validate(): boolean {
-    return (
-      typeof this.payload.latitude === "number" &&
-      typeof this.payload.longitude === "number"
-    );
-  }
-}
-
-export class OpenProcessingToolAction extends Action {
-  readonly app = "web_gis";
-  readonly actionType = "open_processing_tool";
-  readonly payload: { toolName: string; defaults: Record<string, unknown> };
-
-  constructor(toolName: string, defaults: Record<string, unknown>) {
-    super();
-    this.payload = { toolName, defaults };
-  }
-
-  validate(): boolean {
-    return Boolean(this.payload.toolName);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 const findDatasetByName = (
   nodes: DatasetNodeResponse[],
@@ -132,167 +31,175 @@ const findDatasetByName = (
   return null;
 };
 
-// ---------------------------------------------------------------------------
-// Handler
-// ---------------------------------------------------------------------------
-
-export class WebGISActionHandler extends ActionHandler {
+export class LoadDatasetAction extends Action {
   readonly app = "web_gis";
+  readonly actionType = "load_dataset";
+  readonly payload: { dataset_name: string };
 
-  supportedActions(): string[] {
-    return [
-      "load_dataset",
-      "remove_layer",
-      "fit_to_layer",
-      "toggle_visibility",
-      "map_zoom_to",
-      "open_processing_tool",
-    ];
+  constructor(datasetName: string) {
+    super();
+    this.payload = { dataset_name: datasetName };
   }
 
-  parse(raw: RawUIAction): Action | null {
-    const datasetName = (raw.payload.dataset_name as string) ?? "";
-
-    switch (raw.action_type) {
-      case "load_dataset":
-        return new LoadDatasetAction(datasetName);
-      case "remove_layer":
-        return new RemoveLayerAction(datasetName);
-      case "fit_to_layer":
-        return new FitToLayerAction(datasetName);
-      case "toggle_visibility":
-        return new ToggleVisibilityAction(datasetName);
-      case "map_zoom_to":
-        return new MapZoomToAction(
-          raw.payload.latitude as number,
-          raw.payload.longitude as number
-        );
-      case "open_processing_tool": {
-        const toolName = (raw.payload.tool_name as string) ?? "";
-        const defaults =
-          (raw.payload.defaults as Record<string, unknown>) ?? {};
-        return new OpenProcessingToolAction(toolName, defaults);
-      }
-      default:
-        return null;
-    }
+  validate(): boolean {
+    return Boolean(this.payload.dataset_name);
   }
 
-  async execute(action: Action): Promise<ActionResult> {
-    try {
-      switch (action.actionType) {
-        case "load_dataset":
-          return await this.handleLoadDataset(action as LoadDatasetAction);
-        case "remove_layer":
-          return await this.handleRemoveLayer(action as RemoveLayerAction);
-        case "map_zoom_to":
-          return this.handleMapZoomTo(action as MapZoomToAction);
-        case "open_processing_tool":
-          return this.handleOpenProcessingTool(
-            action as OpenProcessingToolAction
-          );
-        default:
-          return {
-            app: this.app,
-            actionType: action.actionType,
-            success: true,
-          };
-      }
-    } catch (error) {
-      return {
-        app: this.app,
-        actionType: action.actionType,
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  }
-
-  // ---- Individual action executors ----
-
-  private async handleLoadDataset(
-    action: LoadDatasetAction
-  ): Promise<ActionResult> {
-    // Fetch dataset tree to find the dataset by name.
+  async execute(): Promise<ActionResult> {
     const response = await api.get<ApiResponse<DatasetNodeResponse[]>>(
       QueryKeys.datasets[0]
     );
 
     const datasets = response.data?.data ?? [];
-    const node = findDatasetByName(datasets, action.payload.dataset_name);
+    const node = findDatasetByName(datasets, this.payload.dataset_name);
 
     if (!node?.dataset) {
       return {
         app: this.app,
-        actionType: action.actionType,
+        actionType: this.actionType,
         success: false,
-        error: `Dataset "${action.payload.dataset_name}" not found.`,
+        error: `Dataset "${this.payload.dataset_name}" not found.`,
       };
     }
 
-    // Create a layer for the dataset.
     await api.post(QueryKeys.layers[0], {
       name: node.name,
       source: node.dataset.id,
     });
 
-    // Invalidate layers cache so the UI refreshes.
     queryClient.invalidateQueries({ queryKey: QueryKeys.layers });
 
     return {
       app: this.app,
-      actionType: action.actionType,
+      actionType: this.actionType,
       success: true,
       data: { datasetName: node.name },
     };
   }
+}
 
-  private async handleRemoveLayer(
-    action: RemoveLayerAction
-  ): Promise<ActionResult> {
-    return {
-      app: this.app,
-      actionType: action.actionType,
-      success: true,
-    };
+export class RemoveLayerAction extends Action {
+  readonly app = "web_gis";
+  readonly actionType = "remove_layer";
+  readonly payload: { dataset_name: string };
+
+  constructor(datasetName: string) {
+    super();
+    this.payload = { dataset_name: datasetName };
   }
 
-  private handleMapZoomTo(action: MapZoomToAction): ActionResult {
+  validate(): boolean {
+    return Boolean(this.payload.dataset_name);
+  }
+
+  async execute(): Promise<ActionResult> {
+    return { app: this.app, actionType: this.actionType, success: true };
+  }
+}
+
+export class FitToLayerAction extends Action {
+  readonly app = "web_gis";
+  readonly actionType = "fit_to_layer";
+  readonly payload: { dataset_name: string };
+
+  constructor(datasetName: string) {
+    super();
+    this.payload = { dataset_name: datasetName };
+  }
+
+  validate(): boolean {
+    return Boolean(this.payload.dataset_name);
+  }
+
+  async execute(): Promise<ActionResult> {
+    return { app: this.app, actionType: this.actionType, success: true };
+  }
+}
+
+export class ToggleVisibilityAction extends Action {
+  readonly app = "web_gis";
+  readonly actionType = "toggle_visibility";
+  readonly payload: { dataset_name: string };
+
+  constructor(datasetName: string) {
+    super();
+    this.payload = { dataset_name: datasetName };
+  }
+
+  validate(): boolean {
+    return Boolean(this.payload.dataset_name);
+  }
+
+  async execute(): Promise<ActionResult> {
+    return { app: this.app, actionType: this.actionType, success: true };
+  }
+}
+
+export class MapZoomToAction extends Action {
+  readonly app = "web_gis";
+  readonly actionType = "map_zoom_to";
+  readonly payload: { latitude: number; longitude: number };
+
+  constructor(latitude: number, longitude: number) {
+    super();
+    this.payload = { latitude, longitude };
+  }
+
+  validate(): boolean {
+    return (
+      typeof this.payload.latitude === "number" &&
+      typeof this.payload.longitude === "number"
+    );
+  }
+
+  async execute(): Promise<ActionResult> {
     const workspace = workspaceManager.activeWorkspace;
 
     if (!workspace) {
       return {
         app: this.app,
-        actionType: action.actionType,
+        actionType: this.actionType,
         success: false,
         error: "No active workspace.",
       };
     }
 
     workspace.mapStore.flyTo(
-      [action.payload.longitude, action.payload.latitude],
+      [this.payload.longitude, this.payload.latitude],
       12
     );
 
-    return { app: this.app, actionType: action.actionType, success: true };
+    return { app: this.app, actionType: this.actionType, success: true };
+  }
+}
+
+export class OpenProcessingToolAction extends Action {
+  readonly app = "web_gis";
+  readonly actionType = "open_processing_tool";
+  readonly payload: { toolName: string; defaults: Record<string, unknown> };
+
+  constructor(toolName: string, defaults: Record<string, unknown>) {
+    super();
+    this.payload = { toolName, defaults };
   }
 
-  private handleOpenProcessingTool(
-    action: OpenProcessingToolAction
-  ): ActionResult {
+  validate(): boolean {
+    return Boolean(this.payload.toolName);
+  }
+
+  async execute(): Promise<ActionResult> {
     const workspace = workspaceManager.activeWorkspace;
 
     if (!workspace) {
       return {
         app: this.app,
-        actionType: action.actionType,
+        actionType: this.actionType,
         success: false,
         error: "No active workspace.",
       };
     }
 
-    const { toolName, defaults } = action.payload;
-
+    const { toolName, defaults } = this.payload;
     const inputDatasetId = defaults?.inputDatasetId as string | undefined;
 
     if (inputDatasetId) {
@@ -304,8 +211,6 @@ export class WebGISActionHandler extends ActionHandler {
       }
     }
 
-    // Try to find the tool definition from React-Query cache first.
-    // The queryFn returns AxiosResponse<ApiResponse<ProcessingToolsResponse>>
     const cached = queryClient.getQueryData<{
       data: ApiResponse<ProcessingToolsResponse>;
     }>(QueryKeys.processingTools);
@@ -318,10 +223,9 @@ export class WebGISActionHandler extends ActionHandler {
 
     if (toolDef) {
       workspace.processingUIStore.openTool(toolDef, defaults, true);
-      return { app: this.app, actionType: action.actionType, success: true };
+      return { app: this.app, actionType: this.actionType, success: true };
     }
 
-    // Cache miss: build a minimal stub so the modal still opens.
     const stub: ProcessingToolDefinition = {
       toolName,
       label: toolName,
@@ -331,6 +235,6 @@ export class WebGISActionHandler extends ActionHandler {
       parameters: [],
     };
     workspace.processingUIStore.openTool(stub, defaults, true);
-    return { app: this.app, actionType: action.actionType, success: true };
+    return { app: this.app, actionType: this.actionType, success: true };
   }
 }

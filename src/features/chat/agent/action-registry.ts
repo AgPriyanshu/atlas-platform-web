@@ -1,58 +1,139 @@
-import type { ActionHandler } from "./action";
+import type { Action } from "./action";
+import type { RawUIAction } from "./types";
+import { NavigateAction } from "./global-action-handler";
+import {
+  CreateTaskAction,
+  CompleteTaskAction,
+  DeleteTaskAction,
+  ListTasksAction,
+} from "features/todo/actions/todo-action-handler";
+import {
+  ShortenURLAction,
+  ListURLsAction,
+} from "features/url-shortner/actions/url-shortener-action-handler";
+import {
+  LoadDatasetAction,
+  RemoveLayerAction,
+  FitToLayerAction,
+  ToggleVisibilityAction,
+  MapZoomToAction,
+  OpenProcessingToolAction,
+} from "features/web-gis/actions/web-gis-action-handler";
 
-/**
- * Central registry where each feature module registers its ActionHandler.
- *
- * Handlers are keyed by their `app` identifier (e.g. "web_gis", "todo").
- * The AgentExecutor looks up handlers from this registry when dispatching
- * incoming actions from the backend.
- */
+type ActionFactory = (raw: RawUIAction) => Action;
+
 export class ActionRegistry {
-  private static handlers = new Map<string, ActionHandler>();
+  private static factories = new Map<string, ActionFactory>();
 
-  /**
-   * Register an action handler for an app.
-   * Logs a warning and skips if the app is already registered.
-   */
-  static register(handler: ActionHandler): void {
-    if (this.handlers.has(handler.app)) {
+  static register(
+    app: string,
+    actionType: string,
+    factory: ActionFactory
+  ): void {
+    const key = `${app}/${actionType}`;
+
+    if (this.factories.has(key)) {
       console.warn(
-        `[ActionRegistry] Handler for app "${handler.app}" is already registered — skipping.`
+        `[ActionRegistry] Factory for "${key}" is already registered — skipping.`
       );
       return;
     }
 
-    this.handlers.set(handler.app, handler);
-    console.debug(
-      `[ActionRegistry] Registered handler: ${handler.app} (actions: ${handler.supportedActions().join(", ")})`
-    );
+    this.factories.set(key, factory);
   }
 
-  /**
-   * Look up a handler by app name.
-   */
-  static getHandler(app: string): ActionHandler | undefined {
-    return this.handlers.get(app);
+  static getFactory(
+    app: string,
+    actionType: string
+  ): ActionFactory | undefined {
+    return this.factories.get(`${app}/${actionType}`);
   }
 
-  /**
-   * Return all registered handlers.
-   */
-  static getAllHandlers(): ActionHandler[] {
-    return Array.from(this.handlers.values());
-  }
-
-  /**
-   * Return all registered app names.
-   */
-  static getRegisteredApps(): string[] {
-    return Array.from(this.handlers.keys());
-  }
-
-  /**
-   * Clear all registered handlers. Useful for testing.
-   */
   static clear(): void {
-    this.handlers.clear();
+    this.factories.clear();
   }
 }
+
+export const registerAllActions = (): void => {
+  ActionRegistry.register(
+    "global",
+    "navigate",
+    (raw) => new NavigateAction(raw.payload)
+  );
+
+  ActionRegistry.register(
+    "todo",
+    "create_task",
+    (raw) => new CreateTaskAction((raw.payload.description as string) ?? "")
+  );
+  ActionRegistry.register(
+    "todo",
+    "complete_task",
+    (raw) =>
+      new CompleteTaskAction(
+        (raw.payload.description as string) ?? null,
+        (raw.payload.task_id as string) ?? null
+      )
+  );
+  ActionRegistry.register(
+    "todo",
+    "delete_task",
+    (raw) =>
+      new DeleteTaskAction(
+        (raw.payload.description as string) ?? null,
+        (raw.payload.task_id as string) ?? null
+      )
+  );
+  ActionRegistry.register("todo", "list_tasks", () => new ListTasksAction());
+
+  ActionRegistry.register(
+    "url_shortener",
+    "shorten_url",
+    (raw) => new ShortenURLAction((raw.payload.url as string) ?? "")
+  );
+  ActionRegistry.register(
+    "url_shortener",
+    "list_urls",
+    () => new ListURLsAction()
+  );
+
+  ActionRegistry.register(
+    "web_gis",
+    "load_dataset",
+    (raw) => new LoadDatasetAction((raw.payload.dataset_name as string) ?? "")
+  );
+  ActionRegistry.register(
+    "web_gis",
+    "remove_layer",
+    (raw) => new RemoveLayerAction((raw.payload.dataset_name as string) ?? "")
+  );
+  ActionRegistry.register(
+    "web_gis",
+    "fit_to_layer",
+    (raw) => new FitToLayerAction((raw.payload.dataset_name as string) ?? "")
+  );
+  ActionRegistry.register(
+    "web_gis",
+    "toggle_visibility",
+    (raw) =>
+      new ToggleVisibilityAction((raw.payload.dataset_name as string) ?? "")
+  );
+  ActionRegistry.register(
+    "web_gis",
+    "map_zoom_to",
+    (raw) =>
+      new MapZoomToAction(
+        raw.payload.latitude as number,
+        raw.payload.longitude as number
+      )
+  );
+  ActionRegistry.register(
+    "web_gis",
+    "open_processing_tool",
+    (raw) =>
+      new OpenProcessingToolAction(
+        (raw.payload.tool_name as string) ?? "",
+        (raw.payload.defaults as Record<string, unknown>) ?? {}
+      )
+  );
+};

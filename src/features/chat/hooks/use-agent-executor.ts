@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { reaction } from "mobx";
 import { chatStore } from "../store/chat-store";
 import { AgentExecutor } from "../agent/agent-executor";
-import { registerAllHandlers } from "../agent/register-handlers";
+import { registerAllActions } from "../agent/action-registry";
 import type { RawUIAction } from "../agent/types";
 
 // Ensure handlers are registered exactly once.
@@ -20,7 +20,7 @@ export const useAgentExecutor = () => {
 
   useEffect(() => {
     if (!handlersRegistered) {
-      registerAllHandlers();
+      registerAllActions();
       handlersRegistered = true;
     }
   }, []);
@@ -41,7 +41,9 @@ export const useAgentExecutor = () => {
               payload: a.payload,
             })
           );
+
           chatStore.clearPendingUIActions();
+
           const results = await AgentExecutor.executeBatch(actions);
 
           // Log results for observability.

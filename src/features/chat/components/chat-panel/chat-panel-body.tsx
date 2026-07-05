@@ -6,6 +6,7 @@ import { ChatInput } from "./chat-input";
 
 type ChatPanelBodyProps = {
   handleSend: (message: string) => void;
+  handleStop: () => void;
   activeSessionId: string | null;
   isWaitingForResponse: boolean;
   connectionStatus: ConnectionStatus;
@@ -17,21 +18,20 @@ export const ChatPanelBody: React.FC<ChatPanelBodyProps> = ({
   isWaitingForResponse,
   connectionStatus,
   handleSend,
+  handleStop,
   isSessionListOpen,
 }) => {
   return (
     <Flex className="chat-panel-body" flex={1} overflow="hidden" w="full">
-      {/* Chat area */}
       <Flex direction="column" flex={1} minW={0}>
         {activeSessionId ? (
           <>
             <MessageList />
             <ChatInput
               onSend={handleSend}
-              disabled={
-                connectionStatus !== ConnectionStatus.Connected ||
-                isWaitingForResponse
-              }
+              onStop={handleStop}
+              isWaitingForResponse={isWaitingForResponse}
+              disabled={connectionStatus !== ConnectionStatus.Connected}
             />
           </>
         ) : (

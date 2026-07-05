@@ -1,9 +1,12 @@
-import { Flex, Box } from "@chakra-ui/react";
+import { Flex, Box, Text } from "@chakra-ui/react";
 
-export const TypingIndicator = () => {
+interface TypingIndicatorProps {
+  status?: string | null;
+}
+
+export const TypingIndicator = ({ status }: TypingIndicatorProps) => {
   return (
-    <Flex px={4} alignItems="flex-start" gap={2.5}>
-      {/* Avatar placeholder */}
+    <Flex className="typing-indicator" px={4} alignItems="flex-start" gap={2.5}>
       <Flex
         shrink={0}
         w={7}
@@ -17,7 +20,6 @@ export const TypingIndicator = () => {
         <Box w={2} h={2} borderRadius="full" bg="text.muted" />
       </Flex>
 
-      {/* Dots */}
       <Flex
         bg="surface.subtle"
         borderRadius="xl"
@@ -33,19 +35,25 @@ export const TypingIndicator = () => {
           },
         }}
       >
-        {[0, 1, 2].map((i) => (
-          <Box
-            key={i}
-            w={2}
-            h={2}
-            borderRadius="full"
-            bg="text.muted"
-            css={{
-              animation: "typingBounce 1.2s infinite ease-in-out",
-              animationDelay: `${i * 0.15}s`,
-            }}
-          />
-        ))}
+        {status ? (
+          <Text fontSize="sm" color="text.muted">
+            {status}
+          </Text>
+        ) : (
+          [0, 1, 2].map((i) => (
+            <Box
+              key={i}
+              w={2}
+              h={2}
+              borderRadius="full"
+              bg="text.muted"
+              css={{
+                animation: "typingBounce 1.2s infinite ease-in-out",
+                animationDelay: `${i * 0.15}s`,
+              }}
+            />
+          ))
+        )}
       </Flex>
     </Flex>
   );

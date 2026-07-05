@@ -4,6 +4,8 @@ import type {
   UIAction,
   WebSocketIncomingMessage,
 } from "api/chat/types";
+import { queryClient } from "api/query-client";
+import { QueryKeys } from "api/query-keys";
 import { ConnectionStatus } from "./types";
 
 export class ChatStore {
@@ -12,6 +14,7 @@ export class ChatStore {
   isPanelOpen = false;
   isSessionListOpen = false;
   isWaitingForResponse = false;
+  agentStatus: string | null = null;
   connectionStatus: ConnectionStatus = ConnectionStatus.Disconnected;
   pendingUIActions: UIAction[] = [];
 
@@ -38,6 +41,12 @@ export class ChatStore {
   setActiveSession(sessionId: string | null) {
     this.activeSessionId = sessionId;
     this.messages = [];
+  }
+
+  loadHistory(messages: ChatMessageResponse[]) {
+    // Only load if the store is still empty (no live messages arrived yet).
+    if (this.messages.length > 0) return;
+    this.messages = messages.filter((m) => !!m.message);
   }
 
   setConnectionStatus(status: ConnectionStatus) {
@@ -91,6 +100,7 @@ export class ChatStore {
       // Handle assistant message (chunked or whole)
       if (data.role === "assistant") {
         this.isWaitingForResponse = false;
+        this.agentStatus = null;
         const existingMessage = this.messages.find((m) => m.id === data.id);
 
         if (existingMessage) {
@@ -109,8 +119,16 @@ export class ChatStore {
           }
         }
 
-        if (!data.isChunk && data.ui_action) {
-          this.setPendingUIActions([data.ui_action]);
+        if (!data.isChunk) {
+          if (data.ui_action) {
+            this.setPendingUIActions([data.ui_action]);
+          }
+
+          if (this.activeSessionId) {
+            queryClient.invalidateQueries({
+              queryKey: QueryKeys.chatMessages(this.activeSessionId),
+            });
+          }
         }
 
         return;
@@ -135,9 +153,19 @@ export class ChatStore {
     this.pendingUIActions = [];
   }
 
+  setAgentStatus(status: string | null) {
+    this.agentStatus = status;
+  }
+
+  stopWaiting() {
+    this.isWaitingForResponse = false;
+    this.agentStatus = null;
+  }
+
   clearMessages() {
     this.messages = [];
     this.isWaitingForResponse = false;
+    this.agentStatus = null;
   }
 }
 

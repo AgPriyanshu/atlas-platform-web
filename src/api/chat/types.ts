@@ -57,3 +57,9 @@ export interface UIAction {
   type: UIActionType;
   payload: Record<string, unknown>;
 }
+
+export interface AgentStatusMessage {
+  type: "agent_status";
+  session_id: string;
+  status: string;
+}
