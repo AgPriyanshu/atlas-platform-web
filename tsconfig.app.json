@@ -32,6 +32,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
-  "exclude": ["src/features/workload-tree"]
+  "include": ["src"]
 }
