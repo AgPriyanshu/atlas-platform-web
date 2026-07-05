@@ -112,6 +112,9 @@ export const ChatPanel = observer(() => {
       <ResizableBox
         width={panelWidth}
         height={containerHeight}
+        handleSize={[8, 8]}
+        lockAspectRatio={false}
+        transformScale={1}
         minConstraints={[MIN_WIDTH, containerHeight]}
         maxConstraints={[MAX_WIDTH, containerHeight]}
         axis="x"

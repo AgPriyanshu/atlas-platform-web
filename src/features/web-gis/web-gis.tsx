@@ -1,5 +1,5 @@
 import { Box, Flex, Text, VStack } from "@chakra-ui/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ResizableBox } from "react-resizable";
 
 import { LayerPanel, MapCanvas, MapControls, Toolbar } from "./components";
@@ -46,7 +46,12 @@ export const WebGIS = () => {
         className="web-gis-resizable"
         width={layerPanelWidth}
         height={containerHeight}
-        handle={(_, ref) => <ResizeHandle ref={ref} />}
+        handleSize={[8, 8]}
+        lockAspectRatio={false}
+        transformScale={1}
+        handle={(_, ref) => (
+          <ResizeHandle ref={ref as React.RefObject<HTMLDivElement>} />
+        )}
         resizeHandles={["e"]}
         onResize={(_, { size: newSize }) => {
           setLayerPanelWidth(newSize.width);
